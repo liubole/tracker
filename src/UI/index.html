@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+<script>
+    var canvas = document.getElementById('canvas');
+    canvas.width = 1300;
+    canvas.height = window.innerHeight;
+    var context = canvas.getContext("2d");
+</script>
+<script src="./js/canvas.js"></script>
+<script>
+    var startLine = undefined;
+    var aheadLine = 3;//秒
+    // 绘制canvas
+    var evtSource = new EventSource("http://local.ci123.com/Tracker/tests/calculation.php");
+    evtSource.onmessage = function(e) {
+        var signal,traceId,startAt;
+        switch(e.event) {
+            case 'begin':
+                    // 初始化坐标起点(左、右边留3s)
+                    // or 重新设置坐标间距
+                signal = JSON.parse(e.data);
+                traceId = signal.traceId;
+                startAt = signal.startAt;
+                if (typeof startLine === 'undefined') startLine = startAt;
+                break;
+            case 'draw':
+                    // 绘点
+                signal = JSON.parse(e.data);
+                    // 将点坐标转换一下再绘制
+                break;
+            case 'end':
+                signal = JSON.parse(e.data);
+                traceId = signal.traceId;
+                    // 某 traceId 下的所有点传输完毕，开始连线
+                    // 连线(同组内order从大到小查找[小指向大]，不同组间[上一组某结点指向下一组头结点])
+                break;
+        }
+    }
+    // 坐标转换：
+    //      时间到坐标的转换：坐标*1000
+    // (151xxxx.xxx-startLine,y)
+    // 13s
+    // 起始点为(0,0)向右3s
+     var groups = [];
+    // 每次绘制所有点和箭头
+    function reDraw() {
+        for(var g = 0; g < groups.length;) {
+            var points = groups[g];
+            for (var i = 0; i < points.length;) {
+                // 每次检查失效的点
+                if (canDel(points[i])) {
+                    points.splice(i, 1);
+                    continue;
+                }
+
+                // 每次重新转换坐标
+                // 绘制所有点
+                arc(cvt(points[i]));
+                i++;
+            }
+            if (points.length == 0) {
+                groups.splice(g, 1);
+                continue;
+            }
+            g++;
+        }
+    }
+
+    // 坐标转换，每次刷新前都要转换
+    function cvt(p) {
+        p.x = (p.x - startLine + aheadLine) * 1000; // 精度为毫秒，前面预留aheadLine
+        p.y = (p.y + 1) * 10; //纵坐标跨度10，顶部预留一个跨度
+        return p;
+    }
+
+    // 每次检查失效的点(起点-x>2*3s)
+    function canDel(p) {
+        return startLine - p.x > 2 * aheadLine;
+    }
+
+    function arc(p) {
+        (new Arc(p.x, p.y)).draw(context);
+    }
+</script>
+</html>

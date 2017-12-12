@@ -1,0 +1,26 @@
+{
+  "name": "tricolor/tracker",
+  "description": "调用链跟踪工具",
+  "keywords": [
+    "track",
+    "debug"
+  ],
+  "time": "2017-12-10",
+  "license": "Apache License 2.0",
+  "authors": [
+    {
+      "name": "liubole",
+      "email": "bole.java@gmail.com",
+      "homepage": "https://liubole.github.io",
+      "role": "Engineer"
+    }
+  ],
+  "require": {
+    "php": ">=5.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tricolor\\Tracker\\": "src/"
+    }
+  }
+}
