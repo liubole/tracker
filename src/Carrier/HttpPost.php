@@ -12,8 +12,10 @@ class HttpPost extends Base
 {
     public function unpack(&$post)
     {
-        Context::set($post[Config::$carrierPostTraceKey]);
-        unset($post[Config::$carrierPostTraceKey]);
+        if (is_array($post) && !isset($post[Config::$carrierPostTraceKey])) {
+            Context::set($post[Config::$carrierPostTraceKey]);
+            unset($post[Config::$carrierPostTraceKey]);
+        }
         return $post;
     }
 
