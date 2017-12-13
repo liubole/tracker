@@ -7,10 +7,10 @@
  */
 class Rabbitmq
 {
-    public static function publish($msg)
+    public static function publish($message)
     {
         if (class_exists('\Tricolor\Tracker\Trace'))
-            $msg = \Tricolor\Tracker\Trace::attach(new \Tricolor\Tracker\Carrier\MQ(), new \Tricolor\Tracker\Filter\MQ(), $msg);
+            $message = \Tricolor\Tracker\Trace::attach(new \Tricolor\Tracker\Carrier\MQ(), new \Tricolor\Tracker\Filter\MQ(), $message);
         //real publish
     }
 
