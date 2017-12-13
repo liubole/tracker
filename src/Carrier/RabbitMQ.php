@@ -1,5 +1,6 @@
 <?php
 namespace Tricolor\Tracker\Carrier;
+use Tricolor\Tracker\Config;
 use Tricolor\Tracker\Context;
 /**
  * Created by PhpStorm.
@@ -9,15 +10,12 @@ use Tricolor\Tracker\Context;
  */
 class RabbitMQ extends Base
 {
-    private static $key = '__trace__';
-    private static $dataKey = 'MQData';
-
     public function unpack(&$msg)
     {
         if (is_string($msg) && ($msgArr = unserialize($msg)) && is_array($msgArr)) {
-            if (isset($msgArr[RabbitMQ::$key]) && isset($msgArr[RabbitMQ::$dataKey])) {
-                Context::set($msgArr[RabbitMQ::$key]);
-                return $msgArr[RabbitMQ::$dataKey];
+            if (isset($msgArr[Config::$carrierMQTraceKey]) && isset($msgArr[Config::$carrierMQDataKey])) {
+                Context::set($msgArr[Config::$carrierMQTraceKey]);
+                return $msgArr[Config::$carrierMQDataKey];
             }
         }
         return $msg;
@@ -26,8 +24,8 @@ class RabbitMQ extends Base
     public function pack(&$msg)
     {
         return serialize(array(
-            RabbitMQ::$key => Context::get(),
-            RabbitMQ::$dataKey => $msg,
+            Config::$carrierMQTraceKey => Context::get(),
+            Config::$carrierMQDataKey => $msg,
         ));
     }
 }

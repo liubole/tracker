@@ -9,8 +9,6 @@ use Tricolor\Tracker\Context;
  */
 class XmlRpc extends Base
 {
-    private static $key = '__trace__';
-
     public function unpack(&$post)
     {
         //todo

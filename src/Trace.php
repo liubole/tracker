@@ -9,7 +9,7 @@ namespace Tricolor\Tracker;
 use Tricolor\Tracker\Common\StrUtils;
 use Tricolor\Tracker\Common\UID;
 use Tricolor\Tracker\Reporter\Base as BaseReporter;
-use Tricolor\Tracker\Reporter\File as FileReporter;
+use Tricolor\Tracker\Reporter\MQ as MQReporter;
 
 class Trace
 {
@@ -58,7 +58,7 @@ class Trace
     {
         Context::$TAG = $tag;
         Context::$At = microtime(true);
-        if (!Trace::$reporter) Trace::$reporter = new FileReporter();
+        if (!Trace::$reporter) Trace::$reporter = new MQReporter();
         call_user_func(array(Trace::$reporter, 'report'));
         Context::$RpcId = StrUtils::step(Context::$RpcId);
     }

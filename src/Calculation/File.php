@@ -1,6 +1,7 @@
 <?php
 namespace Tricolor\Tracker\Calculation;
 use Tricolor\Tracker\Common\StrUtils;
+use Tricolor\Tracker\Config;
 use Tricolor\Tracker\Context;
 
 /**
@@ -11,30 +12,28 @@ use Tricolor\Tracker\Context;
  */
 class File
 {
-    public static $cache;
-
     public function __construct()
     {
-        File::$cache = __DIR__ . '/../Cache/';
+
     }
 
     public function read()
     {
-        if (!is_dir(File::$cache)) return;
-        if ($droot = opendir(File::$cache)) {
+        if (!is_dir(Config::$cacheDir)) return;
+        if ($droot = opendir(Config::$cacheDir)) {
             while (true) {
                 $traceId = readdir($droot);
                 if ($traceId === false) {
                     usleep(1000);
                     continue;
                 }
-                if (!is_dir(File::$cache . "/" . $traceId) || $traceId == "." || $traceId == "..") {
+                if (!is_dir(Config::$cacheDir . "/" . $traceId) || $traceId == "." || $traceId == "..") {
                     continue;
                 }
                 $contexts = array();
-                $dh = dir($traceFile = File::$cache . "/" . $traceId);
+                $dh = dir($traceFile = Config::$cacheDir . "/" . $traceId);
                 while ($rpcId = $dh->read()) {
-                    $fh = fopen($file = File::$cache . "/" . $traceId . '/' . $rpcId, 'rb');
+                    $fh = fopen($file = Config::$cacheDir . "/" . $traceId . '/' . $rpcId, 'rb');
                     $serial = fread($fh, filesize($file));
                     $contexts[$rpcId] = Context::serialToArray($serial);
                     fclose($fh);

@@ -1,5 +1,6 @@
 <?php
 namespace Tricolor\Tracker\Carrier;
+use Tricolor\Tracker\Config;
 use Tricolor\Tracker\Context;
 /**
  * Created by PhpStorm.
@@ -9,18 +10,16 @@ use Tricolor\Tracker\Context;
  */
 class HttpPost extends Base
 {
-    private static $key = '__trace__';
-
     public function unpack(&$post)
     {
-        Context::set($post[HttpPost::$key]);
-        unset($post[HttpPost::$key]);
+        Context::set($post[Config::$carrierPostTraceKey]);
+        unset($post[Config::$carrierPostTraceKey]);
         return $post;
     }
 
     public function pack(&$post)
     {
-        $post[HttpPost::$key] = Context::get();
+        $post[Config::$carrierPostTraceKey] = Context::get();
         return $post;
     }
 }

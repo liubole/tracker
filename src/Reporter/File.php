@@ -1,5 +1,6 @@
 <?php
 namespace Tricolor\Tracker\Reporter;
+use Tricolor\Tracker\Config;
 use Tricolor\Tracker\Context;
 /**
  * Created by PhpStorm.
@@ -9,24 +10,15 @@ use Tricolor\Tracker\Context;
  */
 class File extends Base
 {
-    public static $cache;
-
     public function __construct()
     {
-        if (file_exists('/tmp')) {
-            File::$cache = '/tmp/trace_cache';
-        } else {
-            File::$cache = __DIR__ . '/../Cache/';
-        }
-        if (!($res = @mkdir(File::$cache, 0776, true))) {
-            //报错 todo
-        }
+        is_dir(Config::$cacheDir) OR @mkdir(Config::$cacheDir, 0776, true);
     }
 
     public function report()
     {
         // 记录在日志里
-        mkdir($dir = File::$cache . '/' . Context::$TraceId, 0776, true);
+        mkdir($dir = Config::$cacheDir . '/' . Context::$TraceId, 0776, true);
         $fp = fopen($file = $dir . '/' . Context::$RpcId, 'wb');
         fwrite($fp, Context::get());
         fclose($fp);
