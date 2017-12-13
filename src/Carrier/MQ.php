@@ -15,7 +15,7 @@ class MQ extends Base
         if (is_string($msg) && ($msgArr = unserialize($msg)) && is_array($msgArr)) {
             if (isset($msgArr[Config::$carrierMQTraceKey]) && isset($msgArr[Config::$carrierMQDataKey])) {
                 Context::set($msgArr[Config::$carrierMQTraceKey]);
-                return $msgArr[Config::$carrierMQDataKey];
+                return $msg = $msgArr[Config::$carrierMQDataKey];
             }
         }
         return $msg;
@@ -23,7 +23,7 @@ class MQ extends Base
 
     public function pack(&$msg)
     {
-        return serialize(array(
+        return $msg = serialize(array(
             Config::$carrierMQTraceKey => Context::get(),
             Config::$carrierMQDataKey => $msg,
         ));
