@@ -74,7 +74,7 @@ class Trace
     {
         if (!Context::$TraceId || !$carrier || !$filter) return $p;
         if (!method_exists($filter, 'attach') || !$filter->attach()) return $p;
-        return call_user_func(array($carrier, 'pack'), $p);
+        return $p = call_user_func(array($carrier, 'pack'), $p);
     }
 
     /**
