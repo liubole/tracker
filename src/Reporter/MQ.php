@@ -14,7 +14,8 @@ class MQ extends Base
 {
     public function report()
     {
-        if (Config::$mqReporter)
-            call_user_func(Config::$mqReporter, Context::get());
+        if (Config::$mqReporter) {
+            call_user_func(Config::$mqReporter, Config::$mqRoutingKey, Context::get());
+        }
     }
 }
