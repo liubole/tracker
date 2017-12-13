@@ -6,15 +6,15 @@ namespace Tricolor\Tracker\Filter;
  * Date: 2017/12/9
  * Time: 17:05
  */
-class TraceSelf extends Base
+class MQ extends Base
 {
     public function recv()
     {
-        return false;
+        return true;
     }
 
     public function attach()
     {
-        return false;
+        return true;
     }
 }

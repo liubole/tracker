@@ -10,7 +10,7 @@ class Rabbitmq
     public static function publish($msg)
     {
         if (class_exists('\Tricolor\Tracker\Trace'))
-            $msg = \Tricolor\Tracker\Trace::attach(new \Tricolor\Tracker\Carrier\MQ(), new \Tricolor\Tracker\Filter\Common(), $msg);
+            $msg = \Tricolor\Tracker\Trace::attach(new \Tricolor\Tracker\Carrier\MQ(), new \Tricolor\Tracker\Filter\MQ(), $msg);
         //real publish
     }
 
@@ -18,7 +18,7 @@ class Rabbitmq
     {
         $realCallback = function ($msgObj) use ($callback) {
             if (class_exists('\Tricolor\Tracker\Trace'))
-                $msgObj->body = \Tricolor\Tracker\Trace::recv(new \Tricolor\Tracker\Carrier\MQ(), new \Tricolor\Tracker\Filter\Common(), $msgObj->body);
+                $msgObj->body = \Tricolor\Tracker\Trace::recv(new \Tricolor\Tracker\Carrier\MQ(), new \Tricolor\Tracker\Filter\MQ(), $msgObj->body);
             //real callback
             call_user_func($callback, $msgObj);
         };

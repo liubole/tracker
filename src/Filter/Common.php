@@ -1,5 +1,6 @@
 <?php
 namespace Tricolor\Tracker\Filter;
+use Tricolor\Tracker\Config;
 use Tricolor\Tracker\Context;
 
 /**
@@ -17,7 +18,8 @@ class Common extends Base
 
     public function recv()
     {
-        return isset(Context::$TraceId);
+        $post = func_get_arg(0);
+        return $post && is_array($post) && isset($post[Config::$carrierPostTraceKey]);
     }
 
     public function attach()
