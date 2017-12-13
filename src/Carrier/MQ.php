@@ -8,7 +8,7 @@ use Tricolor\Tracker\Context;
  * Date: 2017/11/4
  * Time: 22:00
  */
-class RabbitMQ extends Base
+class MQ extends Base
 {
     public function unpack(&$msg)
     {
