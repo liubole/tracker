@@ -22,6 +22,6 @@ class Common extends Base
 
     public function attach()
     {
-        return true;
+        return isset(Context::$TraceId);
     }
 }
