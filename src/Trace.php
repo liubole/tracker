@@ -56,6 +56,7 @@ class Trace
      */
     public static function watch($tag)
     {
+        if (!Context::$TraceId) return;
         Context::$TAG = $tag;
         Context::$At = microtime(true);
         if (!Trace::$reporter) Trace::$reporter = new MQReporter();
@@ -71,7 +72,7 @@ class Trace
      */
     public static function attach($carrier, $filter, &$p)
     {
-        if (!$carrier || !$filter) return $p;
+        if (!Context::$TraceId || !$carrier || !$filter) return $p;
         if (!method_exists($filter, 'attach') || !$filter->attach()) return $p;
         return call_user_func(array($carrier, 'pack'), $p);
     }
