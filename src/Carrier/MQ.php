@@ -12,11 +12,14 @@ class MQ extends Base
 {
     public function unpack(&$msg)
     {
-        if (is_string($msg) && ($msgArr = unserialize($msg)) && is_array($msgArr)) {
-            if (isset($msgArr[Config::$carrierMQTraceKey]) && isset($msgArr[Config::$carrierMQDataKey])) {
-                Context::set($msgArr[Config::$carrierMQTraceKey]);
-                return $msg = $msgArr[Config::$carrierMQDataKey];
+        try {
+            if (is_string($msg) && ($msgArr = @unserialize($msg)) && is_array($msgArr)) {
+                if (isset($msgArr[Config::$carrierMQTraceKey]) && isset($msgArr[Config::$carrierMQDataKey])) {
+                    Context::set($msgArr[Config::$carrierMQTraceKey]);
+                    return $msg = $msgArr[Config::$carrierMQDataKey];
+                }
             }
+        } catch (\Exception $e) {
         }
         return $msg;
     }
