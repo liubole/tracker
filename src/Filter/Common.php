@@ -18,7 +18,7 @@ class Common extends Base
 
     public function recv()
     {
-        $post = func_get_arg(0);
+        $post = $_POST;
         return $post && is_array($post) && isset($post[Config::$carrierPostTraceKey]);
     }
 
