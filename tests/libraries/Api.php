@@ -1,5 +1,9 @@
 <?php
 use \Tricolor\Tracker\Trace;
+use \Tricolor\Tracker\Config\Define;
+use \Tricolor\Tracker\Config\Values;
+use \Tricolor\Tracker\Carrier\HttpPost;
+use \Tricolor\Tracker\Filter\Common;
 /**
  * Created by PhpStorm.
  * User: flyhi
@@ -9,13 +13,30 @@ use \Tricolor\Tracker\Trace;
 /**
  * 模拟Api端
  */
-class Api extends M_Controller
+class Api
 {
-
     public function __construct()
     {
-        // 在 webroot/index.php 开头，autoload之后 加入
-        if (class_exists('\Tricolor\Tracker\Trace'))
-            \Tricolor\Tracker\Trace::recv(new \Tricolor\Tracker\Carrier\HttpPost(), new \Tricolor\Tracker\Filter\Common(), $_POST);
+        // 在 autoload之后、业务调用之前 加入
+        // 也可以把配置写在其他class里
+        Values::handler(function ($key) {
+            switch ($key) {
+                case Define::mqReporter:
+                    return array('\Shop\RabbitMQ\Publisher', 'pubLog');
+                case Define::mqRoutingKey:
+                    return 'shop.log.trace';
+                default:
+                    return Values::get($key);
+            }
+        });
+        Trace::recv(new HttpPost(), new Common(), $_POST);
+    }
+
+    public function output($output)
+    {
+        // 在输出、api返回的地方调用
+        Trace::watch('apiReturn');
+        echo json_encode($output);
+        die();
     }
 }
