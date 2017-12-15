@@ -18,6 +18,7 @@ class Values
         Define::carrierPostTraceKey => '__trace__',
         Define::carrierMQTraceKey => '__trace__',
         Define::carrierMQDataKey => '__data__',
+        Define::samplingRate => 20,
     );
 
     public static function get($key)

@@ -14,7 +14,7 @@ class Common extends Base
 {
     public function init()
     {
-        return rand(1, 5) === 1;
+        return rand(1, 100) <= Values::get(Define::samplingRate);
     }
 
     public function recv()

@@ -17,6 +17,12 @@ class Define
     const mqRoutingKey = 'mqRoutingKey';
 
     /**
+     * sampling rate
+     * 0 ~ 100
+     */
+    const samplingRate = 'samplingRate';
+
+    /**
      * you can keep it default
      */
     const carrierPostTraceKey = 'carrierPostTraceKey';
