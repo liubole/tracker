@@ -23,10 +23,8 @@ class Trace
     {
         if (!$filter) return;
         if (!method_exists($filter, 'init') || !$filter->init()) return;
-
         Context::$TraceId = UID::create();
         Context::$RpcId = '0';
-
         Trace::watch('Init');
     }
 
@@ -41,11 +39,8 @@ class Trace
     {
         if (!$carrier || !$filter) return $post;
         if (!method_exists($filter, 'recv') || !$filter->recv()) return $post;
-
         $post = call_user_func(array($carrier, 'unpack'), $post);
-
         Context::$RpcId .= '.0';
-
         Trace::watch('Recv');
         return $post;
     }

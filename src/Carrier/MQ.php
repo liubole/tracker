@@ -1,6 +1,7 @@
 <?php
 namespace Tricolor\Tracker\Carrier;
-use Tricolor\Tracker\Config;
+use Tricolor\Tracker\Config\Values;
+use Tricolor\Tracker\Config\Define;
 use Tricolor\Tracker\Context;
 /**
  * Created by PhpStorm.
@@ -14,9 +15,9 @@ class MQ extends Base
     {
         try {
             if (is_string($msg) && ($msgArr = @unserialize($msg)) && is_array($msgArr)) {
-                if (isset($msgArr[Config::$carrierMQTraceKey]) && isset($msgArr[Config::$carrierMQDataKey])) {
-                    Context::set($msgArr[Config::$carrierMQTraceKey]);
-                    return $msg = $msgArr[Config::$carrierMQDataKey];
+                if (isset($msgArr[Values::get(Define::carrierMQTraceKey)]) && isset($msgArr[Values::get(Define::carrierMQDataKey)])) {
+                    Context::set($msgArr[Values::get(Define::carrierMQTraceKey)]);
+                    return $msg = $msgArr[Values::get(Define::carrierMQDataKey)];
                 }
             }
         } catch (\Exception $e) {
@@ -27,8 +28,8 @@ class MQ extends Base
     public function pack(&$msg)
     {
         return $msg = serialize(array(
-            Config::$carrierMQTraceKey => Context::get(),
-            Config::$carrierMQDataKey => $msg,
+            Values::get(Define::carrierMQTraceKey) => Context::get(),
+            Values::get(Define::carrierMQDataKey) => $msg,
         ));
     }
 }

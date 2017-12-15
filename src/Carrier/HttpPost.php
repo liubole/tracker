@@ -1,6 +1,7 @@
 <?php
 namespace Tricolor\Tracker\Carrier;
-use Tricolor\Tracker\Config;
+use Tricolor\Tracker\Config\Values;
+use Tricolor\Tracker\Config\Define;
 use Tricolor\Tracker\Context;
 /**
  * Created by PhpStorm.
@@ -12,16 +13,16 @@ class HttpPost extends Base
 {
     public function unpack(&$post)
     {
-        if (is_array($post) && isset($post[Config::$carrierPostTraceKey])) {
-            Context::set($post[Config::$carrierPostTraceKey]);
-            unset($post[Config::$carrierPostTraceKey]);
+        if (is_array($post) && isset($post[Values::get(Define::carrierPostTraceKey)])) {
+            Context::set($post[Values::get(Define::carrierPostTraceKey)]);
+            unset($post[Values::get(Define::carrierPostTraceKey)]);
         }
         return $post;
     }
 
     public function pack(&$post)
     {
-        $post[Config::$carrierPostTraceKey] = Context::get();
+        $post[Values::get(Define::carrierPostTraceKey)] = Context::get();
         return $post;
     }
 }

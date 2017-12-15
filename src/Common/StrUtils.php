@@ -1,7 +1,5 @@
 <?php
 namespace Tricolor\Tracker\Common;
-use Tricolor\Tracker\Calculation\Graph;
-use Tricolor\Tracker\Calculation\Node;
 
 /**
  * Created by PhpStorm.
@@ -18,38 +16,38 @@ class StrUtils
         return substr($str, 0, $pos + 1) . ((int)substr($str, $pos + 1) + 1);
     }
 
-    /**
-     * 提取点 & 分组 & 组内排序
-     * @param $contexts
-     * @param $startAt
-     * @param $traceId
-     * @return array
-     */
-    public static function graph(&$contexts, &$startAt, &$traceId)
-    {
-        $startAt = $traceId = null;
-        $groups = array();
-        foreach ($contexts as $rpcId => $context) {
-            $groups[self::group($rpcId)][self::order($rpcId)] = self::point($context);
-            $startAt = isset($startAt) ? min($startAt, $context['At']) : $context['At'];
-            isset($traceId) OR ($traceId = $context['TraceId']);
-        }
-        // 返回点集合 & 关系集合
-        foreach ($groups as $gid => $group) {
-            if (($count = count($group)) > 1) {
-                $i = 0;
-                foreach ($group as $point) {
-                    if ($i >= $count - 1) {
-                        break;
-                    }
-                    $i++;
-                }
-            }
-
-        }
-
-        return array($points, $graph);
-    }
+//    /**
+//     * 提取点 & 分组 & 组内排序
+//     * @param $contexts
+//     * @param $startAt
+//     * @param $traceId
+//     * @return array
+//     */
+//    public static function graph(&$contexts, &$startAt, &$traceId)
+//    {
+//        $startAt = $traceId = null;
+//        $groups = array();
+//        foreach ($contexts as $rpcId => $context) {
+//            $groups[self::group($rpcId)][self::order($rpcId)] = self::point($context);
+//            $startAt = isset($startAt) ? min($startAt, $context['At']) : $context['At'];
+//            isset($traceId) OR ($traceId = $context['TraceId']);
+//        }
+//        // 返回点集合 & 关系集合
+//        foreach ($groups as $gid => $group) {
+//            if (($count = count($group)) > 1) {
+//                $i = 0;
+//                foreach ($group as $point) {
+//                    if ($i >= $count - 1) {
+//                        break;
+//                    }
+//                    $i++;
+//                }
+//            }
+//
+//        }
+//
+//        return array($points, $graph);
+//    }
 
     private static function order($rpcId)
     {

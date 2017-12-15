@@ -1,6 +1,7 @@
 <?php
 namespace Tricolor\Tracker\Reporter;
-use Tricolor\Tracker\Config;
+use Tricolor\Tracker\Config\Values;
+use Tricolor\Tracker\Config\Define;
 use Tricolor\Tracker\Context;
 /**
  *
@@ -14,8 +15,8 @@ class MQ extends Base
 {
     public function report()
     {
-        if (Config::$mqReporter) {
-            call_user_func(Config::$mqReporter, Config::$mqRoutingKey, Context::get());
+        if (Values::get(Define::mqReporter)) {
+            call_user_func(Values::get(Define::mqReporter), Values::get(Define::mqRoutingKey), Context::get());
         }
     }
 }

@@ -1,6 +1,7 @@
 <?php
 namespace Tricolor\Tracker\Filter;
-use Tricolor\Tracker\Config;
+use Tricolor\Tracker\Config\Values;
+use Tricolor\Tracker\Config\Define;
 use Tricolor\Tracker\Context;
 
 /**
@@ -19,7 +20,7 @@ class Common extends Base
     public function recv()
     {
         $post = $_POST;
-        return $post && is_array($post) && isset($post[Config::$carrierPostTraceKey]);
+        return $post && is_array($post) && isset($post[Values::get(Define::carrierPostTraceKey)]);
     }
 
     public function attach()

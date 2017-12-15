@@ -12,6 +12,7 @@ class Context
     public static $RpcId;//: 区分调用层级
     public static $At;//: 调用时间
     public static $TAG;//: 标记
+    public static $Attach;//: 额外数据
 
     public static function get()
     {
