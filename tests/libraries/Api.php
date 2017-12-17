@@ -1,9 +1,8 @@
 <?php
 use \Tricolor\Tracker\Trace;
-use \Tricolor\Tracker\Config\Define;
-use \Tricolor\Tracker\Config\Values;
-use \Tricolor\Tracker\Carrier\HttpPost;
-use \Tricolor\Tracker\Filter\Common;
+use \Tricolor\Tracker\Config\Reporter;
+use \Tricolor\Tracker\Sampler\Attachment\Server as ServerAttach;
+use \Tricolor\Tracker\Deliverer\HttpPost as PostDeliverer;
 /**
  * Created by PhpStorm.
  * User: flyhi
@@ -19,23 +18,18 @@ class Api
     {
         // 在 autoload之后、业务调用之前 加入
         // 也可以把配置写在其他class里
-        Values::handler(function ($key) {
-            switch ($key) {
-                case Define::mqReporter:
-                    return array('\Shop\RabbitMQ\Publisher', 'pubLog');
-                case Define::mqRoutingKey:
-                    return 'shop.log.trace';
-                default:
-                    return Values::get($key);
-            }
-        });
-        Trace::recv(new HttpPost(), new Common(), $_POST);
+        Reporter::$reporter = array('\Shop\RabbitMQ\Publisher', 'pubLog');
+        Reporter::$reportParams = array('shop.log.trace', '{param}', 8);
+        Trace::instance()
+            ->setAttach(new ServerAttach($_SERVER))
+            ->recv(new PostDeliverer($_POST))
+            ->watch();
     }
 
     public function output($output)
     {
         // 在输出、api返回的地方调用
-        Trace::watch('apiReturn');
+        Trace::instance()->watch('apiReturn', $output);
         echo json_encode($output);
         die();
     }

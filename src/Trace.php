@@ -8,81 +8,106 @@ namespace Tricolor\Tracker;
  */
 use Tricolor\Tracker\Common\StrUtils;
 use Tricolor\Tracker\Common\UID;
-use Tricolor\Tracker\Reporter\Base as BaseReporter;
-use Tricolor\Tracker\Reporter\MQ as MQReporter;
 
 class Trace
 {
-    private static $reporter;
+    private $tag = "Inspect";
+    /**
+     * @var \Tricolor\Tracker\Sampler\Attachment\Base
+     */
+    private $attachment;
+    /**
+     * @var \Tricolor\Tracker\Sampler\Filter\Base
+     */
+    private $filter;
 
     /**
      * 生成跟踪上下文
-     * @param $filter \Tricolor\Tracker\Filter\Base
+     * @param $filter \Tricolor\Tracker\Sampler\Filter\Base
+     * @return $this
      */
-    public static function init($filter)
+    public function init($filter = null)
     {
-        if (!$filter) return;
-        if (!method_exists($filter, 'init') || !$filter->init()) return;
+        if ($filter) $this->filter = $filter;
+        if (!$filter || !$filter->sample()) return $this;
         Context::$TraceId = UID::create();
         Context::$RpcId = '0';
-        Trace::watch('Init');
+        $this->tag = ucfirst(__FUNCTION__);
+        return $this;
     }
 
     /**
-     * 接收传递过来的跟踪上下文
-     * @param $carrier
-     * @param $filter \Tricolor\Tracker\Filter\Base
-     * @param $post
-     * @return mixed
+     * @param $deliverer \Tricolor\Tracker\Deliverer\Base
+     * @param bool $auto_init
+     * @return $this
      */
-    public static function recv($carrier, $filter, &$post)
+    public function recv($deliverer, $auto_init = false)
     {
-        if (!$carrier || !$filter) return $post;
-        if (!method_exists($filter, 'recv') || !$filter->recv()) return $post;
-        $post = call_user_func(array($carrier, 'unpack'), $post);
-        Context::$RpcId .= '.0';
-        Trace::watch('Recv');
-        return $post;
-    }
-
-    /**
-     * 自定义记录数据
-     * @param $tag
-     */
-    public static function watch($tag)
-    {
-        if (!Context::$TraceId) return;
-        Context::$TAG = $tag;
-        Context::$At = microtime(true);
-        if (!Trace::$reporter) Trace::$reporter = new MQReporter();
-        call_user_func(array(Trace::$reporter, 'report'));
-        Context::$RpcId = StrUtils::step(Context::$RpcId);
-    }
-
-    /**
-     * @param $carrier
-     * @param $filter \Tricolor\Tracker\Filter\Base
-     * @param $p
-     * @return mixed
-     */
-    public static function attach($carrier, $filter, &$p)
-    {
-        if (!Context::$TraceId || !$carrier || !$filter) return $p;
-        if (!method_exists($filter, 'attach') || !$filter->attach()) return $p;
-        return $p = call_user_func(array($carrier, 'pack'), $p);
-    }
-
-    /**
-     * 设置数据处理者
-     * @param $reporter
-     * @return null|BaseReporter
-     * @return $cache 存储目录
-     */
-    public static function setReporter($reporter)
-    {
-        if ($reporter instanceof BaseReporter) {
-            return (Trace::$reporter = $reporter);
+        if (!$deliverer->unpack()) {
+            return $auto_init ? $this->init() : $this;
         }
-        return null;
+        Context::$RpcId .= '.0';
+        $this->tag = ucfirst(__FUNCTION__);
+        return $this;
+    }
+
+    /**
+     * @param $deliverer \Tricolor\Tracker\Deliverer\Base
+     * @return $this
+     */
+    public function deliver($deliverer)
+    {
+        if (!Context::$TraceId) return $this;
+        if (!$deliverer->pack()) return $this;
+        $this->tag = ucfirst(__FUNCTION__);
+        return $this;
+    }
+
+    /**
+     * @param null $_ extra data
+     * @return bool
+     */
+    public function watch($_ = null)
+    {
+        if (!Context::$TraceId) return false;
+        Context::$At = microtime(true);
+        $report = array_merge(Context::toArray(), array(
+            'Tag' => $this->tag,
+            'Attach' => $this->attachment ? $this->attachment->getAll() : null,
+            'Extra' => func_num_args() ? func_get_args() : null,
+        ));
+        Reporter::report($report);
+        Context::$RpcId = StrUtils::step(Context::$RpcId);
+        return true;
+    }
+
+    /**
+     * 设置过滤器
+     * @param $filter
+     * @return $this
+     */
+    public function setFilter($filter)
+    {
+        $this->filter = $filter;
+        return $this;
+    }
+
+    /**
+     * 附件获取
+     * @param $attachment
+     * @return $this
+     */
+    public function setAttach($attachment)
+    {
+        $this->attachment = $attachment;
+        return $this;
+    }
+
+    /**
+     * @return Trace
+     */
+    public static function instance()
+    {
+        return new Trace();
     }
 }

@@ -1,6 +1,7 @@
 <?php
 use \Tricolor\Tracker\Trace;
-use \Tricolor\Tracker\Filter\Common;
+use Tricolor\Tracker\Sampler\Attachment\Server as ServerAttach;
+use Tricolor\Tracker\Sampler\Filter\Random as RandomFilter;
 /**
  * Created by PhpStorm.
  * User: flyhi
@@ -15,13 +16,16 @@ class Client
     public function __construct()
     {
         // 在 autoload之后、实际业务开始前 加入
-        Trace::init(new Common());
+        Trace::instance()
+            ->setAttach(new ServerAttach())
+            ->init(new RandomFilter(100))
+            ->watch();
     }
 
     public function output($output)
     {
         // 在输出、api返回的地方调用
-        Trace::watch('apiReturn');
+        Trace::instance()->watch('apiReturn', $output);
         echo json_encode($output);
         die();
     }

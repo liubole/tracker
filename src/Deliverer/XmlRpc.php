@@ -1,5 +1,5 @@
 <?php
-namespace Tricolor\Tracker\Carrier;
+namespace Tricolor\Tracker\Deliverer;
 use Tricolor\Tracker\Context;
 /**
  * Created by PhpStorm.
@@ -7,17 +7,17 @@ use Tricolor\Tracker\Context;
  * Date: 2017/12/9
  * Time: 16:49
  */
-class XmlRpc extends Base
+class XmlRpc implements Base
 {
-    public function unpack(&$post)
+    public function unpack()
     {
         //todo
-        return $post;
+        return false;
     }
 
-    public function pack(&$post)
+    public function pack()
     {
         //todo
-        return $post;
+        return false;
     }
 }

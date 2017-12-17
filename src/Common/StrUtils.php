@@ -9,6 +9,11 @@ namespace Tricolor\Tracker\Common;
  */
 class StrUtils
 {
+    public static function startsWith($haystack, $needle)
+    {
+        return strpos($haystack, $needle) === 0;
+    }
+
     public static function step($str)
     {
         if (!isset($str) || strlen($str) === 0) return '';
@@ -48,31 +53,31 @@ class StrUtils
 //
 //        return array($points, $graph);
 //    }
-
-    private static function order($rpcId)
-    {
-        if (($pos = strrpos($rpcId, '.')) === false) return (int)$rpcId;
-        return (int)substr($rpcId, $pos + 1);
-    }
-
-    private static function group($rpcId)
-    {
-        if (($pos = strrpos($rpcId, '.')) === false) return '.';
-        return substr($rpcId, 0, $pos + 1);
-    }
-
-    private static function point($context)
-    {
-        return array(
-            'x' => $context['At'],
-            'y' => substr_count($context['RpcId'], '.'),
-            'rpcId' => $context['RpcId'],
-            'at' => $context['At'],
-            'traceId' => $context['TraceId'],
-            'tag' => $context['TAG'],
-        );
-    }
-
+//
+//    private static function order($rpcId)
+//    {
+//        if (($pos = strrpos($rpcId, '.')) === false) return (int)$rpcId;
+//        return (int)substr($rpcId, $pos + 1);
+//    }
+//
+//    private static function group($rpcId)
+//    {
+//        if (($pos = strrpos($rpcId, '.')) === false) return '.';
+//        return substr($rpcId, 0, $pos + 1);
+//    }
+//
+//    private static function point($context)
+//    {
+//        return array(
+//            'x' => $context['At'],
+//            'y' => substr_count($context['RpcId'], '.'),
+//            'rpcId' => $context['RpcId'],
+//            'at' => $context['At'],
+//            'traceId' => $context['TraceId'],
+//            'tag' => $context['TAG'],
+//        );
+//    }
+//
 //    public static function tree(&$contexts)
 //    {
 //        $chains = array();
