@@ -18,7 +18,11 @@ class Server implements Base
     public function getAll()
     {
         $attach = array();
-        $define = new \ReflectionClass(Attachment::class);
+        if (version_compare("5.5", PHP_VERSION, ">")) {
+            $define = new \ReflectionClass('\Tricolor\Tracker\Config\Attachment');
+        } else {
+            $define = new \ReflectionClass(Attachment::class);
+        }
         foreach ($define->getStaticProperties() as $name => $bool) {
             if (!$bool || !method_exists($this, $name = lcfirst($name))) continue;
             if ($res = $this->$name()) $attach = array_merge($attach, $res);
