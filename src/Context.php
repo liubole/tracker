@@ -19,8 +19,10 @@ class Context
 
     public static function set($serial)
     {
-        if ($serial && ($trace = unserialize($serial)))
-            foreach ($trace as $var => $val) self::$$var = $val;
+        try {
+            if ($serial && ($trace = @unserialize($serial)))
+                foreach ($trace as $var => $val) self::$$var = $val;
+        } catch (\Exception $e) {}
     }
 
     public static function toArray()
