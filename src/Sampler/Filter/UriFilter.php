@@ -10,9 +10,9 @@ class UriFilter implements Base
     private $excludeReq = array();
     private $server;
 
-    public function __construct($server)
+    public function __construct(&$server = null)
     {
-        $this->server = $server;
+        $this->server = $server ? $server : $_SERVER;
     }
 
     public function sample()
