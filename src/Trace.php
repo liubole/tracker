@@ -94,6 +94,15 @@ class Trace
     }
 
     /**
+     * 设置tag
+     * @param $tag
+     */
+    public function tag($tag)
+    {
+        $this->tag = $tag;
+    }
+
+    /**
      * 附件获取
      * @param $attachment
      * @return $this
