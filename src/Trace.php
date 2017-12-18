@@ -87,7 +87,7 @@ class Trace
 
     /**
      * 设置过滤器
-     * @param $filter
+     * @param $filter \Tricolor\Tracker\Sampler\Filter\Base
      * @return $this
      */
     public function setFilter($filter)
@@ -99,7 +99,7 @@ class Trace
 
     /**
      * 设置tag
-     * @param $tag
+     * @param $tag string
      * @return $this
      */
     public function tag($tag)
@@ -110,7 +110,7 @@ class Trace
 
     /**
      * 附件获取
-     * @param $attachment
+     * @param $attachment \Tricolor\Tracker\Sampler\Filter\Base
      * @return $this
      */
     public function setAttach($attachment)

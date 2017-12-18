@@ -12,7 +12,11 @@ class UriFilter implements Base
 
     public function __construct(&$server = null)
     {
-        $this->server = $server ? $server : $_SERVER;
+        if ($server) {
+            $this->server = &$server;
+        } else {
+            $this->server = &$_SERVER;
+        }
     }
 
     public function sample()

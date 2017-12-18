@@ -14,7 +14,7 @@ class HttpPost implements Base
 
     public function __construct(&$var)
     {
-        $this->post = $var;
+        $this->post = &$var;
     }
 
     public function unpack()

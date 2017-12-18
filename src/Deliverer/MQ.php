@@ -21,9 +21,9 @@ class MQ implements Base
     public function __construct(&$var)
     {
         if (is_object($var)) {
-            $this->msgObj = $var;
+            $this->msgObj = &$var;
         } else if (is_string($var)) {
-            $this->message = $var;
+            $this->message = &$var;
         }
     }
 

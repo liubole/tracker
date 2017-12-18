@@ -17,7 +17,7 @@ class MQ implements Base
     public function __construct(&$msgObj = null)
     {
         if (is_object($msgObj)) {
-            $this->msgObj = $msgObj;
+            $this->msgObj = &$msgObj;
         }
     }
 
