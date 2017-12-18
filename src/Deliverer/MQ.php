@@ -1,5 +1,6 @@
 <?php
 namespace Tricolor\Tracker\Deliverer;
+use Tricolor\Tracker\Common\Coding;
 use Tricolor\Tracker\Config\Deliverer;
 use Tricolor\Tracker\Context;
 /**
@@ -30,7 +31,7 @@ class MQ implements Base
     {
         try {
             if (!$this->msgObj || !($msg = $this->msgObj->body)) return false;
-            if (!is_string($msg) || !($msgArr = @unserialize($msg)) || !is_array($msgArr)) return false;
+            if (!is_string($msg) || !($msgArr = Coding::decode($msg)) || !is_array($msgArr)) return false;
             if (!isset($msgArr[Deliverer::$deliverMQTraceKey]) || !isset($msgArr[Deliverer::$deliverMQDataKey])) return false;
             Context::set($msgArr[Deliverer::$deliverMQTraceKey]);
             $this->msgObj->body = $msgArr[Deliverer::$deliverMQDataKey];
@@ -43,7 +44,7 @@ class MQ implements Base
     public function pack()
     {
         if ($this->message) {
-            $this->message = serialize(array(
+            $this->message = Coding::encode(array(
                 Deliverer::$deliverMQTraceKey => Context::get(),
                 Deliverer::$deliverMQDataKey => $this->message,
             ));

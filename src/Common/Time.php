@@ -1,5 +1,7 @@
 <?php
 namespace Tricolor\Tracker\Common;
+use Tricolor\Tracker\Config\Format;
+
 /**
  *
  * User: Tricolor
@@ -9,6 +11,6 @@ class Time
 {
     public static function get()
     {
-        return microtime();
+        return microtime(Format::$timeAsFloat);
     }
 }

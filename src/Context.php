@@ -1,5 +1,7 @@
 <?php
 namespace Tricolor\Tracker;
+use Tricolor\Tracker\Common\Coding;
+
 /**
  * Created by PhpStorm.
  * User: Tricolor
@@ -14,13 +16,13 @@ class Context
 
     public static function get()
     {
-        return serialize(Context::toArray());
+        return Coding::encode(Context::toArray());
     }
 
     public static function set($serial)
     {
         try {
-            if ($serial && ($trace = @unserialize($serial)))
+            if ($serial && ($trace = Coding::decode($serial)))
                 foreach ($trace as $var => $val) self::$$var = $val;
         } catch (\Exception $e) {}
     }

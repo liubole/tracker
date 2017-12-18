@@ -6,12 +6,13 @@ namespace Tricolor\Tracker;
  * User: Tricolor
  * DateTime: 2017/12/15 16:25
  */
+use Tricolor\Tracker\Common\Coding;
 use \Tricolor\Tracker\Config\Reporter as ReporterConfig;
 class Reporter
 {
     public static function report($message)
     {
-        $message = serialize($message);
+        $message = Coding::encode($message);
         $r_params = array();
         if (ReporterConfig::$reportParams) {
             $r_params = is_array(ReporterConfig::$reportParams) ?
