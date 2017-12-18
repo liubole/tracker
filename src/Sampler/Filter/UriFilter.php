@@ -31,6 +31,7 @@ class UriFilter implements Base
                 'is_regex' => (bool)$is_regex,
             );
         }
+        return $this;
     }
 
     /**

@@ -30,6 +30,7 @@ class Ip implements Base
                 'is_regex' => (bool)$is_regex,
             );
         }
+        return $this;
     }
 
     public function excludeIp($pattern, $is_regex = true)
@@ -40,6 +41,7 @@ class Ip implements Base
                 'is_regex' => (bool)$is_regex,
             );
         }
+        return $this;
     }
 
     /**
