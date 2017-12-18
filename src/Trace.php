@@ -7,6 +7,7 @@ namespace Tricolor\Tracker;
  * Time: 20:41
  */
 use Tricolor\Tracker\Common\StrUtils;
+use Tricolor\Tracker\Common\Time;
 use Tricolor\Tracker\Common\UID;
 
 class Trace
@@ -31,7 +32,7 @@ class Trace
         if ($filter) $this->filter = $filter;
         if (!$filter || !$filter->sample()) return $this;
         Context::$TraceId = UID::create();
-        Context::$RpcId = '0';
+        StrUtils::rpcInit(Context::$RpcId);
         $this->tag = ucfirst(__FUNCTION__);
         return $this;
     }
@@ -46,7 +47,7 @@ class Trace
         if (!$deliverer->unpack()) {
             return $auto_init ? $this->init() : $this;
         }
-        Context::$RpcId .= '.0';
+        StrUtils::rpcNext(Context::$RpcId);
         $this->tag = ucfirst(__FUNCTION__);
         return $this;
     }
@@ -70,14 +71,14 @@ class Trace
     public function watch($_ = null)
     {
         if (!Context::$TraceId) return false;
-        Context::$At = microtime(true);
+        Context::$At = Time::get();
         $report = array_merge(Context::toArray(), array(
             'Tag' => $this->tag,
             'Attach' => $this->attachment ? $this->attachment->getAll() : null,
             'Extra' => func_num_args() ? func_get_args() : null,
         ));
         Reporter::report($report);
-        Context::$RpcId = StrUtils::step(Context::$RpcId);
+        StrUtils::rpcStep(Context::$RpcId);
         return true;
     }
 

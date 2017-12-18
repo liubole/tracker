@@ -14,11 +14,25 @@ class StrUtils
         return strpos($haystack, $needle) === 0;
     }
 
-    public static function step($str)
+    public static function rpcStep(&$str)
     {
-        if (!isset($str) || strlen($str) === 0) return '';
-        if (($pos = strrpos($str, '.')) === false) return (string)($str + 1);
-        return substr($str, 0, $pos + 1) . ((int)substr($str, $pos + 1) + 1);
+        if (!isset($str) || strlen($str) === 0) {
+            return $str = '';
+        }
+        if (($pos = strrpos($str, '.')) === false) {
+            return $str = (string)($str + 1);
+        }
+        return $str = substr($str, 0, $pos + 1) . ((int)substr($str, $pos + 1) + 1);
+    }
+
+    public static function rpcNext(&$str)
+    {
+        return $str .= '.0';
+    }
+
+    public static function rpcInit(&$str)
+    {
+        return $str = '0';
     }
 
 //    /**
