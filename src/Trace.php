@@ -9,6 +9,8 @@ namespace Tricolor\Tracker;
 use Tricolor\Tracker\Common\StrUtils;
 use Tricolor\Tracker\Common\Time;
 use Tricolor\Tracker\Common\UID;
+use Tricolor\Tracker\Sampler\Filter\Base as FilterBase;
+use Tricolor\Tracker\Sampler\Attachment\base as AttachBase;
 
 class Trace
 {
@@ -18,9 +20,9 @@ class Trace
      */
     private $attachment;
     /**
-     * @var \Tricolor\Tracker\Sampler\Filter\Base
+     * @var array \Tricolor\Tracker\Sampler\Filter\Base
      */
-    private $filter;
+    private $filter = array();
 
     /**
      * 生成跟踪上下文
@@ -29,8 +31,9 @@ class Trace
      */
     public function init($filter = null)
     {
-        if ($filter) $this->filter = $filter;
-        if (!$filter || !$filter->sample()) return $this;
+        $this->setFilter($filter);
+        foreach ($this->filter as $f)
+            if (!$f->sample()) return $this;
         Context::$TraceId = UID::create();
         StrUtils::rpcInit(Context::$RpcId);
         $this->tag = ucfirst(__FUNCTION__);
@@ -89,7 +92,8 @@ class Trace
      */
     public function setFilter($filter)
     {
-        $this->filter = $filter;
+        if ($filter instanceof FilterBase)
+            $this->filter[] = $filter;
         return $this;
     }
 
@@ -100,7 +104,7 @@ class Trace
      */
     public function tag($tag)
     {
-        $this->tag = $tag;
+        $this->tag = (string)$tag;
         return $this;
     }
 
@@ -111,7 +115,8 @@ class Trace
      */
     public function setAttach($attachment)
     {
-        $this->attachment = $attachment;
+        if ($attachment instanceof AttachBase)
+            $this->attachment = $attachment;
         return $this;
     }
 
