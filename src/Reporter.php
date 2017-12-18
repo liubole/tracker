@@ -2,7 +2,7 @@
 namespace Tricolor\Tracker;
 /**
  * Created by PhpStorm.
- * User: flyhi
+ * User: Tricolor
  * User: Tricolor
  * DateTime: 2017/12/15 16:25
  */

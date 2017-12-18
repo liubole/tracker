@@ -4,7 +4,7 @@ use \Tricolor\Tracker\Sampler\Attachment\MQ as MQAttach;
 use \Tricolor\Tracker\Deliverer\MQ as MQDeliverer;
 /**
  * Created by PhpStorm.
- * User: flyhi
+ * User: Tricolor
  * Date: 2017/11/4
  * Time: 21:44
  */

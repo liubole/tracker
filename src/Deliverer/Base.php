@@ -2,7 +2,7 @@
 namespace Tricolor\Tracker\Deliverer;
 /**
  * Created by PhpStorm.
- * User: flyhi
+ * User: Tricolor
  * Date: 2017/11/4
  * Time: 22:04
  */

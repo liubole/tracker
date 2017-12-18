@@ -4,7 +4,7 @@ use Tricolor\Tracker\Sampler\Attachment\Server as ServerAttach;
 use Tricolor\Tracker\Sampler\Filter\Random as RandomFilter;
 /**
  * Created by PhpStorm.
- * User: flyhi
+ * User: Tricolor
  * Date: 2017/11/4
  * Time: 21:43
  */
