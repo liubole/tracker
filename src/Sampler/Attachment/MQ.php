@@ -24,11 +24,7 @@ class MQ implements Base
     public function getAll()
     {
         $attach = array();
-        if (version_compare("5.5", PHP_VERSION, ">")) {
-            $define = new \ReflectionClass('\Tricolor\Tracker\Config\Attachment');
-        } else {
-            $define = new \ReflectionClass(Attachment::class);
-        }
+        $define = new \ReflectionClass('\Tricolor\Tracker\Config\Attachment');
         foreach ($define->getStaticProperties() as $name => $bool) {
             if (!$bool || !method_exists($this, $name = lcfirst($name))) continue;
             if ($res = $this->$name()) $attach = array_merge($attach, $res);
