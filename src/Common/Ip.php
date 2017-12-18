@@ -11,10 +11,10 @@ class Ip
     {
         $server = $server ? $server : $_SERVER;
         $ip = FALSE;
-        if (!empty($server["HTTP_CLIENT_IP"])) {
+        if (isset($server["HTTP_CLIENT_IP"]) && !empty($server["HTTP_CLIENT_IP"])) {
             $ip = $server["HTTP_CLIENT_IP"];
         }
-        if (!empty($server['HTTP_X_FORWARDED_FOR'])) {
+        if (isset($server['HTTP_X_FORWARDED_FOR']) && !empty($server['HTTP_X_FORWARDED_FOR'])) {
             $ips = explode(", ", $server['HTTP_X_FORWARDED_FOR']);
             if ($ip) {
                 array_unshift($ips, $ip);
@@ -27,6 +27,7 @@ class Ip
                 }
             }
         }
-        return ($ip ? $ip : $server['REMOTE_ADDR']);
+        if ($ip) return $ip;
+        return isset($server['REMOTE_ADDR']) ? $server['REMOTE_ADDR'] : FALSE;
     }
 }

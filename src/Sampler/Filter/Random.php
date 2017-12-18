@@ -11,8 +11,6 @@ class Random implements Base
 {
     public function sample($rate = null)
     {
-        return rand(1, 100) <= isset($rate) ?
-            (int)$rate :
-            (int)Filter::$randomFilterRate;
+        return rand(1, 100) <= (isset($rate) ? (int)$rate : (int)Filter::$randomFilterRate);
     }
 }
