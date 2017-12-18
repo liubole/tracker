@@ -110,7 +110,7 @@ class Trace
 
     /**
      * 附件获取
-     * @param $attachment \Tricolor\Tracker\Sampler\Filter\Base
+     * @param $attachment \Tricolor\Tracker\Sampler\Attachment\Base
      * @return $this
      */
     public function setAttach($attachment)
