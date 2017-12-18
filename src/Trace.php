@@ -96,10 +96,12 @@ class Trace
     /**
      * 设置tag
      * @param $tag
+     * @return $this
      */
     public function tag($tag)
     {
         $this->tag = $tag;
+        return $this;
     }
 
     /**
