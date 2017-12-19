@@ -16,7 +16,7 @@ class RabbitMQ
             ->addAttachments(new MQAttach())
             ->delivery(new MQDeliverer($message))
             ->tag('PubMsg')
-            ->watch();
+            ->watch($message);
         //real publish
     }
 
@@ -27,7 +27,7 @@ class RabbitMQ
                 ->addAttachments(new MQAttach($msgObj))
                 ->delivery(new MQDeliverer($msgObj))
                 ->tag('SubMsg')
-                ->watch();
+                ->watch($msgObj->body);
             call_user_func($callback, $msgObj);
         };
         // do subscribe
