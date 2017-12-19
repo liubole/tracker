@@ -14,7 +14,7 @@ use Tricolor\Tracker\Sampler\Attachment\base as AttachBase;
 
 class Trace
 {
-    private $tag = "Inspect";
+    private $tag = "";
     /**
      * @var array \Tricolor\Tracker\Sampler\Attachment\Base
      */
