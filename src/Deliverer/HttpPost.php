@@ -19,6 +19,7 @@ class HttpPost implements Base
 
     public function unpack()
     {
+        isset($this->post) OR ($this->post = $_POST);
         if (is_array($this->post) && isset($this->post[Deliverer::$deliverPostTraceKey])) {
             Context::set($this->post[Deliverer::$deliverPostTraceKey]);
             unset($this->post[Deliverer::$deliverPostTraceKey]);
@@ -29,10 +30,15 @@ class HttpPost implements Base
 
     public function pack()
     {
-        if ($this->post) {
+        isset($this->post) OR ($this->post = array());
+        if (is_array($this->post)) {
             $this->post[Deliverer::$deliverPostTraceKey] = Context::get();
-            return true;
+        } else {
+            $this->post = rtrim($this->post, '&') . '&' .
+                http_build_query(array(
+                    Deliverer::$deliverPostTraceKey => Context::get()
+                ));
         }
-        return false;
+        return true;
     }
 }

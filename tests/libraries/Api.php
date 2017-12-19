@@ -1,5 +1,6 @@
 <?php
 use \Tricolor\Tracker\Trace;
+use \Tricolor\Tracker\Config\Format;
 use \Tricolor\Tracker\Config\Reporter;
 use \Tricolor\Tracker\Sampler\Attachment\Server as ServerAttach;
 use \Tricolor\Tracker\Deliverer\HttpPost as PostDeliverer;
@@ -18,8 +19,9 @@ class Api
     {
         // 在 autoload之后、业务调用之前 加入
         // 也可以把配置写在其他class里
-        Reporter::$reporter = array('\Shop\RabbitMQ\Publisher', 'pubLog');
-        Reporter::$reportParams = array('shop.log.trace', '{param}', 8);
+        Format::$codeType = Format::codeTypeSerialize;
+        Reporter::$reporter = array('\Tricolor\RabbitMQ\Publisher', 'pubLog');
+        Reporter::$reportParams = array('log.trace', '{param}', 8);
         Trace::instance()
             ->addAttachments(new ServerAttach($_SERVER))
             ->recv(new PostDeliverer($_POST))

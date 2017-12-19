@@ -1,5 +1,7 @@
 <?php
 use \Tricolor\Tracker\Trace;
+use \Tricolor\Tracker\Config\Format;
+use \Tricolor\Tracker\Config\Reporter;
 use Tricolor\Tracker\Sampler\Attachment\Server as ServerAttach;
 use Tricolor\Tracker\Sampler\Filter\Random as RandomFilter;
 /**
@@ -16,9 +18,12 @@ class Client
     public function __construct()
     {
         // 在 autoload之后、实际业务开始前 加入
+        Format::$codeType = Format::codeTypeSerialize;
+        Reporter::$reporter = array('\Tricolor\RabbitMQ\Publisher', 'pubLog');
+        Reporter::$reportParams = array('log.trace', '{param}', 8);
         Trace::instance()
             ->addAttachments(new ServerAttach())
-            ->init(new RandomFilter(100))
+            ->init(new RandomFilter(20))
             ->watch();
     }
 
