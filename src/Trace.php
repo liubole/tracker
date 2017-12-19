@@ -16,13 +16,13 @@ class Trace
 {
     private $tag = "Inspect";
     /**
-     * @var \Tricolor\Tracker\Sampler\Attachment\Base
+     * @var array \Tricolor\Tracker\Sampler\Attachment\Base
      */
-    private $attachment;
+    private $attachments = array();
     /**
      * @var array \Tricolor\Tracker\Sampler\Filter\Base
      */
-    private $filter = array();
+    private $filters = array();
 
     /**
      * 生成跟踪上下文
@@ -31,12 +31,12 @@ class Trace
      */
     public function init($filter = null)
     {
-        $this->setFilter($filter);
-        foreach ($this->filter as $f)
+        $this->addFilters($filter);
+        foreach ($this->filters as $f)
             if (!$f->sample()) return $this;
         Context::$TraceId = UID::create();
         StrUtils::rpcInit(Context::$RpcId);
-        $this->tag = ucfirst(__FUNCTION__);
+        if (!$this->tag) $this->tag = ucfirst(__FUNCTION__);
         return $this;
     }
 
@@ -51,7 +51,7 @@ class Trace
             return $auto_init ? $this->init() : $this;
         }
         StrUtils::rpcNext(Context::$RpcId);
-        $this->tag = ucfirst(__FUNCTION__);
+        if (!$this->tag) $this->tag = ucfirst(__FUNCTION__);
         return $this;
     }
 
@@ -59,11 +59,11 @@ class Trace
      * @param $deliverer \Tricolor\Tracker\Deliverer\Base
      * @return $this
      */
-    public function deliver($deliverer)
+    public function delivery($deliverer)
     {
         if (!Context::$TraceId) return $this;
         if (!$deliverer->pack()) return $this;
-        $this->tag = ucfirst(__FUNCTION__);
+        if (!$this->tag) $this->tag = ucfirst(__FUNCTION__);
         return $this;
     }
 
@@ -75,25 +75,22 @@ class Trace
     {
         if (!Context::$TraceId) return false;
         Context::$At = Time::get();
-        $report = array_merge(Context::toArray(), array(
-            'Tag' => $this->tag,
-            'Attach' => $this->attachment ? $this->attachment->getAll() : null,
-            'Extra' => func_num_args() ? func_get_args() : null,
-        ));
-        Reporter::report($report);
+        Reporter::report($this->getReport(func_get_args()));
         StrUtils::rpcStep(Context::$RpcId);
         return true;
     }
 
     /**
-     * 设置过滤器
-     * @param $filter \Tricolor\Tracker\Sampler\Filter\Base
+     * 添加过滤器
+     * @param null $_ array \Tricolor\Tracker\Sampler\Filter\Base
      * @return $this
      */
-    public function setFilter($filter)
+    public function addFilters($_ = null)
     {
-        if ($filter instanceof FilterBase)
-            $this->filter[] = $filter;
+        foreach (func_get_args() as $filter) {
+            if ($filter instanceof FilterBase)
+                $this->filters[] = $filter;
+        }
         return $this;
     }
 
@@ -110,13 +107,15 @@ class Trace
 
     /**
      * 附件获取
-     * @param $attachment \Tricolor\Tracker\Sampler\Attachment\Base
+     * @param $_ \Tricolor\Tracker\Sampler\Attachment\Base
      * @return $this
      */
-    public function setAttach($attachment)
+    public function addAttachments($_ = null)
     {
-        if ($attachment instanceof AttachBase)
-            $this->attachment = $attachment;
+        foreach (func_get_args() as $attachment) {
+            if ($attachment instanceof AttachBase)
+                $this->attachments[] = $attachment;
+        }
         return $this;
     }
 
@@ -126,5 +125,24 @@ class Trace
     public static function instance()
     {
         return new Trace();
+    }
+
+    private function getReport($args)
+    {
+        $attachments = array();
+        foreach ($this->attachments as $attachment) {
+            if ($attach = $attachment->getAll()) {
+                if (is_array($attach)) {
+                    $attachments = array_merge($attachments, $attach);
+                } else {
+                    $attachments[] = $attach;
+                }
+            }
+        }
+        return array_merge(Context::toArray(), array(
+            'Tag' => $this->tag,
+            'Attach' => $attachments,
+            'Extra' => $args,
+        ));
     }
 }

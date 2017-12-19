@@ -21,15 +21,19 @@ class Api
         Reporter::$reporter = array('\Shop\RabbitMQ\Publisher', 'pubLog');
         Reporter::$reportParams = array('shop.log.trace', '{param}', 8);
         Trace::instance()
-            ->setAttach(new ServerAttach($_SERVER))
+            ->addAttachments(new ServerAttach($_SERVER))
             ->recv(new PostDeliverer($_POST))
+            ->tag('ApiRecv')
             ->watch();
     }
 
     public function output($output)
     {
         // 在输出、api返回的地方调用
-        Trace::instance()->watch('apiReturn', $output);
+        Trace::instance()
+            ->addAttachments(new ServerAttach($_SERVER))
+            ->tag('ApiReturn')
+            ->watch($output);
         echo json_encode($output);
         die();
     }

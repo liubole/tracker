@@ -17,7 +17,7 @@ class Client
     {
         // 在 autoload之后、实际业务开始前 加入
         Trace::instance()
-            ->setAttach(new ServerAttach())
+            ->addAttachments(new ServerAttach())
             ->init(new RandomFilter(100))
             ->watch();
     }
@@ -25,7 +25,10 @@ class Client
     public function output($output)
     {
         // 在输出、api返回的地方调用
-        Trace::instance()->watch('apiReturn', $output);
+        Trace::instance()
+            ->addAttachments(new ServerAttach())
+            ->tag('Return')
+            ->watch($output);
         echo json_encode($output);
         die();
     }

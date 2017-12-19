@@ -19,8 +19,9 @@ class RpcClient
     {
         // ...
         Trace::instance()
-            ->setAttach(new ServerAttach())
-            ->deliver(new PostDeliverer($params))
+            ->addAttachments(new ServerAttach())
+            ->delivery(new PostDeliverer($params))
+            ->tag('CallApi')
             ->watch();
         $output = $this->curl($url, $params);
         Trace::instance()->watch('RecvApi', $output);

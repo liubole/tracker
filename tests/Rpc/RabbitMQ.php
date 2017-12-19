@@ -13,8 +13,9 @@ class RabbitMQ
     public static function publish($message)
     {
         Trace::instance()
-            ->setAttach(new MQAttach())
-            ->deliver(new MQDeliverer($message))
+            ->addAttachments(new MQAttach())
+            ->delivery(new MQDeliverer($message))
+            ->tag('PubMsg')
             ->watch();
         //real publish
     }
@@ -23,8 +24,9 @@ class RabbitMQ
     {
         $realCallback = function ($msgObj) use ($callback) {
             Trace::instance()
-                ->setAttach(new MQAttach($msgObj))
-                ->deliver(new MQDeliverer($msgObj))
+                ->addAttachments(new MQAttach($msgObj))
+                ->delivery(new MQDeliverer($msgObj))
+                ->tag('SubMsg')
                 ->watch();
             call_user_func($callback, $msgObj);
         };
