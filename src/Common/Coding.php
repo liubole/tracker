@@ -1,5 +1,6 @@
 <?php
 namespace Tricolor\Tracker\Common;
+use Tricolor\Tracker\Config\Debug;
 use Tricolor\Tracker\Config\Format;
 
 /**
@@ -21,6 +22,7 @@ class Coding
                     break;
             }
         } catch (\Exception $e) {
+            Logger::log(Debug::ERROR, __METHOD__ . ': exception :' . $e->getMessage());
         }
         return null;
     }
@@ -37,6 +39,7 @@ class Coding
                     break;
             }
         } catch (\Exception $e) {
+            Logger::log(Debug::ERROR, __METHOD__ . ': exception :' . $e->getMessage());
         }
         return null;
     }

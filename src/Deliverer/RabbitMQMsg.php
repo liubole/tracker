@@ -49,6 +49,7 @@ class MQ implements Base
             Logger::log(Debug::INFO, __METHOD__ . ': unpack succeed!');
             return true;
         } catch (\Exception $e) {
+            Logger::log(Debug::ERROR, __METHOD__ . ': exception :' . $e->getMessage());
         }
         Logger::log(Debug::WARNING, __METHOD__ . ': unpack failed!');
         return false;

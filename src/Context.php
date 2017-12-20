@@ -1,6 +1,8 @@
 <?php
 namespace Tricolor\Tracker;
 use Tricolor\Tracker\Common\Coding;
+use Tricolor\Tracker\Common\Logger;
+use Tricolor\Tracker\Config\Debug;
 
 /**
  * Created by PhpStorm.
@@ -21,7 +23,7 @@ class Context
 
     public static function set($serial)
     {
-        if (!$serial || !is_string($serial) || !is_array($serial)) return;
+        if (!$serial && !is_string($serial) && !is_array($serial)) return;
         try {
             $trace = is_string($serial) ? Coding::decode($serial) : $serial;
             $keys = array_intersect(array_keys(self::toArray()), array_keys($trace));
@@ -29,6 +31,7 @@ class Context
                 if (isset($trace[$key])) self::$$key = $trace[$key];
             }
         } catch (\Exception $e) {
+            Logger::log(Debug::ERROR, __METHOD__ . ': exception :' . $e->getMessage());
         }
     }
 
