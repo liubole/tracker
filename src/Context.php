@@ -10,9 +10,9 @@ use Tricolor\Tracker\Common\Coding;
  */
 class Context
 {
-    public static $TraceId;//: 全局调用ID
-    public static $RpcId;//: 区分调用层级
-    public static $At;//: 调用时间
+    public static $TraceId;
+    public static $RpcId;
+    public static $At;
 
     public static function get()
     {
@@ -21,10 +21,15 @@ class Context
 
     public static function set($serial)
     {
+        if (!$serial || !is_string($serial) || !is_array($serial)) return;
         try {
-            if ($serial && ($trace = Coding::decode($serial)))
-                foreach ($trace as $var => $val) self::$$var = $val;
-        } catch (\Exception $e) {}
+            $trace = is_string($serial) ? Coding::decode($serial) : $serial;
+            $keys = array_intersect(array_keys(self::toArray()), array_keys($trace));
+            foreach ($keys as $key) {
+                if (isset($trace[$key])) self::$$key = $trace[$key];
+            }
+        } catch (\Exception $e) {
+        }
     }
 
     public static function toArray()
