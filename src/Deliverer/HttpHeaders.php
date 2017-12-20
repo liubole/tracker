@@ -22,7 +22,11 @@ class HttpHeaders implements Base
      */
     public function unpack()
     {
-        $headers = getallheaders();
+        if (version_compare(PHP_VERSION, '5.5.7', '>=')) {
+            $headers = getallheaders();
+        } else {
+            $headers = $_SERVER;
+        }
         $trace = array();
         foreach (array_keys(Context::toArray()) as $key) {
             if (isset($headers[$this->prefix . $key]))
