@@ -7,11 +7,14 @@ namespace Tricolor\Tracker\Config;
  */
 class Attachment
 {
-    public static $attachServerHttpHost = true;
-    public static $attachServerRequestUri = true;
-    public static $attachServerQueryString = false;
-    public static $attachSapiName = true;
+    public static $httpHost = true;
+    public static $requestUri = true;
+    public static $queryString = false;
+    public static $sapiName = true;
+    public static $httpUa = true;
+    public static $httpXForwardFor = true;
+    public static $remoteAddr = true;
 
-    public static $attachMqRoutingKey = true;
-    public static $attachMqConsumerTag = true;
+    public static $routingKey = true;
+    public static $consumerTag = true;
 }

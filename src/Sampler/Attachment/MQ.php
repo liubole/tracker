@@ -6,9 +6,10 @@ use Tricolor\Tracker\Config\Attachment;
  * User: Tricolor
  * DateTime: 2017/12/15 23:13
  */
-class MQ implements Base
+class MQ extends Attach implements Base
 {
     private $msgObj;
+    private $callPrefix = 'mq_';
 
     /**
      * MQ constructor.
@@ -23,16 +24,10 @@ class MQ implements Base
 
     public function getAll()
     {
-        $attach = array();
-        $define = new \ReflectionClass('\Tricolor\Tracker\Config\Attachment');
-        foreach ($define->getStaticProperties() as $name => $bool) {
-            if (!$bool || !method_exists($this, $name = lcfirst($name))) continue;
-            if ($res = $this->$name()) $attach = array_merge($attach, $res);
-        }
-        return $attach;
+        return parent::get($this, $this->callPrefix);
     }
 
-    private function attachMqRoutingKey()
+    private function mq_routingKey()
     {
         if ($this->msgObj) {
             return array(
@@ -42,7 +37,7 @@ class MQ implements Base
         return array();
     }
 
-    private function attachMqConsumerTag()
+    private function mq_consumerTag()
     {
         if ($this->msgObj) {
             return array(
