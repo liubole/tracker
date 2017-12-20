@@ -27,15 +27,18 @@ class RabbitMQHeaders implements Base
     public function unpack()
     {
         if (!is_object($this->msgObj)) return false;
-        $headers = $this->msgObj->get('application_headers')->getNativeData();
-        $trace = array();
-        foreach (array_keys(Context::toArray()) as $key) {
-            if (isset($headers[$this->prefix . $key]))
-                $trace[$key] = $headers[$this->prefix . $key];
-        }
-        if ($trace) {
-            Context::set($trace);
-            return true;
+        try {
+            $headers = $this->msgObj->get('application_headers')->getNativeData();
+            $trace = array();
+            foreach (array_keys(Context::toArray()) as $key) {
+                if (isset($headers[$this->prefix . $key]))
+                    $trace[$key] = $headers[$this->prefix . $key];
+            }
+            if ($trace) {
+                Context::set($trace);
+                return true;
+            }
+        } catch (\Exception $e) {
         }
         return false;
     }
