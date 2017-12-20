@@ -1,5 +1,7 @@
 <?php
 namespace Tricolor\Tracker\Deliverer;
+use Tricolor\Tracker\Common\Logger;
+use Tricolor\Tracker\Config\Debug;
 use Tricolor\Tracker\Context;
 
 /**
@@ -35,8 +37,10 @@ class HttpHeaders implements Base
         }
         if ($trace) {
             Context::set($trace);
+            Logger::log(Debug::INFO, __METHOD__ . ': unpack succeed!');
             return true;
         }
+        Logger::log(Debug::WARNING, __METHOD__ . ': unpack failed!');
         return false;
     }
 

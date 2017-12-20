@@ -1,5 +1,7 @@
 <?php
 namespace Tricolor\Tracker\Deliverer;
+use Tricolor\Tracker\Common\Logger;
+use Tricolor\Tracker\Config\Debug;
 use Tricolor\Tracker\Context;
 
 /**
@@ -36,10 +38,13 @@ class RabbitMQHeaders implements Base
             }
             if ($trace) {
                 Context::set($trace);
+                Logger::log(Debug::INFO, __METHOD__ . ': unpack succeed!');
                 return true;
             }
         } catch (\Exception $e) {
+            Logger::log(Debug::INFO, __METHOD__ . ': unpack exception : ' . $e->getMessage());
         }
+        Logger::log(Debug::INFO, __METHOD__ . ': unpack failed!');
         return false;
     }
 
@@ -56,9 +61,12 @@ class RabbitMQHeaders implements Base
                 $headers[$this->prefix . $k] = $v;
             }
             $this->msgObj->set('application_headers', $headers);
+            Logger::log(Debug::INFO, __METHOD__ . ': pack succeed!');
             return true;
         } catch (\Exception $e) {
+            Logger::log(Debug::INFO, __METHOD__ . ': pack exception : ' . $e->getMessage());
         }
+        Logger::log(Debug::INFO, __METHOD__ . ': pack failed!');
         return false;
     }
 }

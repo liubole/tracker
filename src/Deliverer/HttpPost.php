@@ -1,5 +1,7 @@
 <?php
 namespace Tricolor\Tracker\Deliverer;
+use Tricolor\Tracker\Common\Logger;
+use Tricolor\Tracker\Config\Debug;
 use Tricolor\Tracker\Config\Deliverer;
 use Tricolor\Tracker\Context;
 /**
@@ -23,8 +25,10 @@ class HttpPost implements Base
         if (is_array($this->post) && isset($this->post[Deliverer::$deliverPostTraceKey])) {
             Context::set($this->post[Deliverer::$deliverPostTraceKey]);
             unset($this->post[Deliverer::$deliverPostTraceKey]);
+            Logger::log(Debug::INFO, __METHOD__ . ': unpack succeed!');
             return true;
         }
+        Logger::log(Debug::INFO, __METHOD__ . ': unpack failed!');
         return false;
     }
 
