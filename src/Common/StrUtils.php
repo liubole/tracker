@@ -14,6 +14,11 @@ class StrUtils
         return strpos($haystack, $needle) === 0;
     }
 
+    public static function endsWith($haystack, $needle)
+    {
+        return strrpos($haystack, $needle) === strlen($haystack) - strlen($needle);
+    }
+
     public static function rpcStep(&$str)
     {
         if (!isset($str) || strlen($str) === 0) {

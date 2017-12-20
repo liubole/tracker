@@ -11,6 +11,7 @@ class HttpHeaders implements Base
 {
     private $prefix = 'Trace-';
     private $headers;
+    private $use_server;
 
     public function __construct(&$headers = null)
     {
@@ -22,15 +23,15 @@ class HttpHeaders implements Base
      */
     public function unpack()
     {
-        if (version_compare(PHP_VERSION, '5.5.7', '>=')) {
-            $headers = getallheaders();
-        } else {
-            $headers = $_SERVER;
-        }
+        $headers = $this->getHeaders();
         $trace = array();
         foreach (array_keys(Context::toArray()) as $key) {
-            if (isset($headers[$this->prefix . $key]))
-                $trace[$key] = $headers[$this->prefix . $key];
+            foreach ($this->possibleKeys($key) as $possible) {
+                if (isset($headers[$possible])) {
+                    $trace[$key] = $headers[$possible];
+                    break;
+                }
+            }
         }
         if ($trace) {
             Context::set($trace);
@@ -49,5 +50,30 @@ class HttpHeaders implements Base
             $this->headers[] = $this->prefix . $k . ': ' . $v;
         }
         return true;
+    }
+
+    private function possibleKeys($key)
+    {
+        if ($this->use_server) {
+            return array(
+                $this->prefix . $key,
+                'HTTP_' . strtoupper(str_replace('-', '_', $this->prefix . $key))
+            );
+        }
+        return array(
+            $this->prefix . $key,
+            'HTTP_' . strtoupper(str_replace('-', '_', $this->prefix . $key))
+        );
+    }
+
+    private function getHeaders()
+    {
+        if (version_compare(PHP_VERSION, '5.5.7', '>=')) {
+            $headers = getallheaders();
+        } else {
+            $headers = $_SERVER;
+            $this->use_server = true;
+        }
+        return $headers;
     }
 }
