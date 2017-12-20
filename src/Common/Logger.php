@@ -9,7 +9,7 @@ use Tricolor\Tracker\Config\Debug;
  */
 class Logger
 {
-    private static $file_ext = '.log';
+    private static $file_ext = 'log';
     private static $date_fmt = 'Y-m-d H:i:s';
     private static $file_permissions = '0644';
 
