@@ -24,6 +24,8 @@ class Trace
      */
     private $filters = array();
 
+    private $watch = true;
+
     /**
      * 生成跟踪上下文
      * @param $filter \Tricolor\Tracker\Sampler\Filter\Base
@@ -32,11 +34,16 @@ class Trace
     public function init($filter = null)
     {
         $this->addFilters($filter);
-        foreach ($this->filters as $f)
-            if (!$f->sample()) return $this;
+        foreach ($this->filters as $f) {
+            if (!$f->sample()) {
+                $this->watch = false;
+                return $this;
+            }
+        }
         Context::$TraceId = UID::create();
         StrUtils::rpcInit(Context::$RpcId);
-        if (!$this->tag) $this->tag = ucfirst(__FUNCTION__);
+        $this->tag(ucfirst(__FUNCTION__), false);
+        $this->watch = true;
         return $this;
     }
 
@@ -48,10 +55,15 @@ class Trace
     public function recv($deliverer, $auto_init = false)
     {
         if (!$deliverer->unpack()) {
-            return $auto_init ? $this->init() : $this;
+            if ($auto_init) {
+                return $this->init();
+            }
+            $this->watch = false;
+            return $this;
         }
         StrUtils::rpcNext(Context::$RpcId);
-        if (!$this->tag) $this->tag = ucfirst(__FUNCTION__);
+        $this->tag(ucfirst(__FUNCTION__), false);
+        $this->watch = true;
         return $this;
     }
 
@@ -61,9 +73,12 @@ class Trace
      */
     public function delivery($deliverer)
     {
-        if (!Context::$TraceId) return $this;
-        if (!$deliverer->pack()) return $this;
-        if (!$this->tag) $this->tag = ucfirst(__FUNCTION__);
+        if (!Context::$TraceId || !$deliverer->pack()) {
+            $this->watch = false;
+            return $this;
+        }
+        $this->tag(ucfirst(__FUNCTION__), false);
+        $this->watch = true;
         return $this;
     }
 
@@ -73,7 +88,9 @@ class Trace
      */
     public function watch($_ = null)
     {
-        if (!Context::$TraceId) return false;
+        if (!Context::$TraceId || !$this->watch) {
+            return false;
+        }
         Context::$At = Time::get();
         Reporter::report($this->getReport(func_get_args()));
         StrUtils::rpcStep(Context::$RpcId);
@@ -88,8 +105,9 @@ class Trace
     public function addFilters($_ = null)
     {
         foreach (func_get_args() as $filter) {
-            if ($filter instanceof FilterBase)
+            if ($filter instanceof FilterBase) {
                 $this->filters[] = $filter;
+            }
         }
         return $this;
     }
@@ -97,11 +115,16 @@ class Trace
     /**
      * 设置tag
      * @param $tag string
+     * @param $rewrite bool
      * @return $this
      */
-    public function tag($tag)
+    public function tag($tag, $rewrite = true)
     {
-        $this->tag = (string)$tag;
+        if ($rewrite) {
+            $this->tag = (string)$tag;
+        } else if (!$this->tag) {
+            $this->tag = ucfirst(__FUNCTION__);
+        }
         return $this;
     }
 
@@ -113,8 +136,9 @@ class Trace
     public function addAttachments($_ = null)
     {
         foreach (func_get_args() as $attachment) {
-            if ($attachment instanceof AttachBase)
+            if ($attachment instanceof AttachBase) {
                 $this->attachments[] = $attachment;
+            }
         }
         return $this;
     }
@@ -145,4 +169,5 @@ class Trace
             'Extra' => $args,
         ));
     }
+
 }

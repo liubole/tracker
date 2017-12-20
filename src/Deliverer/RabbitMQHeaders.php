@@ -1,5 +1,6 @@
 <?php
 namespace Tricolor\Tracker\Deliverer;
+use PhpAmqpLib\Wire\AMQPTable;
 use Tricolor\Tracker\Common\Logger;
 use Tricolor\Tracker\Config\Debug;
 use Tricolor\Tracker\Context;
@@ -29,20 +30,25 @@ class RabbitMQHeaders implements Base
     public function unpack()
     {
         if (!is_object($this->msgObj)) return false;
+        $headers = array();
         try {
-            $headers = $this->msgObj->get('application_headers')->getNativeData();
-            $trace = array();
-            foreach (array_keys(Context::toArray()) as $key) {
-                if (isset($headers[$this->prefix . $key]))
-                    $trace[$key] = $headers[$this->prefix . $key];
-            }
-            if ($trace) {
-                Context::set($trace);
-                Logger::log(Debug::INFO, __METHOD__ . ': unpack succeed!');
-                return true;
+            $hdr = $this->msgObj->get('application_headers');
+            if (!$hdr || !($headers = $hdr->getNativeData())) {
+                return false;
             }
         } catch (\Exception $e) {
             Logger::log(Debug::INFO, __METHOD__ . ': unpack exception : ' . $e->getMessage());
+        }
+        $trace = array();
+        foreach (array_keys(Context::toArray()) as $key) {
+            if (isset($headers[$this->prefix . $key])) {
+                $trace[$key] = $headers[$this->prefix . $key];
+            }
+        }
+        if ($trace) {
+            Context::set($trace);
+            Logger::log(Debug::INFO, __METHOD__ . ': unpack succeed!');
+            return true;
         }
         Logger::log(Debug::INFO, __METHOD__ . ': unpack failed!');
         return false;
@@ -55,12 +61,12 @@ class RabbitMQHeaders implements Base
     {
         if (!is_object($this->msgObj)) return false;
         try {
-            $headers = $this->msgObj->get('application_headers')->getNativeData();
-            if (!$headers) $headers = array();
+            $hdr = $this->msgObj->get('application_headers');
+            if (!$hdr) $hdr = new AMQPTable();
             foreach (Context::toArray() as $k => $v) {
-                $headers[$this->prefix . $k] = $v;
+                $hdr->set($this->prefix . $k, $v, AMQPTable::T_STRING_SHORT);
             }
-            $this->msgObj->set('application_headers', $headers);
+            $this->msgObj->set('application_headers', $hdr);
             Logger::log(Debug::INFO, __METHOD__ . ': pack succeed!');
             return true;
         } catch (\Exception $e) {
