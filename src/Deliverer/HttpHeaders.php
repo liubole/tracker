@@ -46,7 +46,7 @@ class HttpHeaders implements Base
     {
         isset($this->headers) OR ($this->headers = array());
         foreach (Context::toArray() as $k => $v) {
-            $this->headers[$this->prefix . $k] = $v;
+            $this->headers[] = $this->prefix . $k . ': ' . $v;
         }
         return true;
     }
