@@ -9,25 +9,18 @@ use Tricolor\Tracker\Config\Debug;
  */
 class Logger
 {
-    private static $levels = array(
-        'ERROR' => Debug::ERROR,
-        'DEBUG' => Debug::DEBUG,
-        'INFO' => Debug::INFO,
-    );
     private static $file_ext = '.log';
     private static $date_fmt = 'Y-m-d H:i:s';
     private static $file_permissions = '0644';
 
     public static function log($level, $msg)
     {
-        if (Debug::$debug === false) return false;
-        $level = strtoupper($level);
-        if (!isset(Logger::$levels[$level]) || !in_array(Logger::$levels[$level], Debug::$thresholds)) {
+        if (Debug::$debug === false || !in_array($level, Debug::$thresholds)) {
             return false;
         }
         $log_root = is_callable(Debug::$logRoot) ? call_user_func(Debug::$logRoot) : (string)Debug::$logRoot;
 
-        $file_path = $log_root . 'log-' . date('Y-m-d') . '.' . Logger::$file_ext;
+        $file_path = rtrim($log_root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'log-' . date('Y-m-d') . '.' . Logger::$file_ext;
         $message = '';
 
         if (!file_exists($file_path)) $new_file = true;
