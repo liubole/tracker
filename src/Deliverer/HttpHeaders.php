@@ -29,7 +29,6 @@ class HttpHeaders implements Base
         foreach (array_keys(Context::toArray()) as $key) {
             if (isset($headers[$this->prefix . $key])) {
                 $trace[$key] = $headers[$this->prefix . $key];
-                break;
             }
         }
         if ($trace) {
