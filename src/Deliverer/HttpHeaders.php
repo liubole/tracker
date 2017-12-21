@@ -11,9 +11,8 @@ use Tricolor\Tracker\Context;
  */
 class HttpHeaders implements Base
 {
-    private $prefix = 'Trace-';
+    private $prefix = 'Trace-';// [A-Z][\w\-\d]+
     private $headers;
-    private $use_server;
 
     public function __construct(&$headers = null)
     {
@@ -28,11 +27,9 @@ class HttpHeaders implements Base
         $headers = $this->getHeaders();
         $trace = array();
         foreach (array_keys(Context::toArray()) as $key) {
-            foreach ($this->possibleKeys($key) as $possible) {
-                if (isset($headers[$possible])) {
-                    $trace[$key] = $headers[$possible];
-                    break;
-                }
+            if (isset($headers[$this->prefix . $key])) {
+                $trace[$key] = $headers[$this->prefix . $key];
+                break;
             }
         }
         if ($trace) {
@@ -56,27 +53,16 @@ class HttpHeaders implements Base
         return true;
     }
 
-    private function possibleKeys($key)
-    {
-        if ($this->use_server) {
-            return array(
-                $this->prefix . $key,
-                'HTTP_' . strtoupper(str_replace('-', '_', $this->prefix . $key))
-            );
-        }
-        return array(
-            $this->prefix . $key,
-            'HTTP_' . strtoupper(str_replace('-', '_', $this->prefix . $key))
-        );
-    }
-
     private function getHeaders()
     {
-        if (version_compare(PHP_VERSION, '5.5.7', '>=')) {
-            $headers = getallheaders();
-        } else {
-            $headers = $_SERVER;
-            $this->use_server = true;
+        if (function_exists('getallheaders')) {
+            return getallheaders();
+        }
+        $headers = [];
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
         }
         return $headers;
     }
