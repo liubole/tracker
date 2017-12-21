@@ -20,7 +20,7 @@ class Reporter
         }
         // param type1: {reporterParams}
         foreach ($r_params as &$p) {
-            if (preg_match('/{[\w_\d]+}/', $p)) {
+            if (is_string($p) && preg_match('/{[\w_\d]+}/', $p)) {
                 $p = $message;
                 return call_user_func_array(ReporterConfig::$reporter, $r_params);
             }

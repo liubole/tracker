@@ -8,8 +8,8 @@ use Tricolor\Tracker\Config\Attachment;
  */
 class MQ extends Attach implements Base
 {
-    protected $msgObj;
-    protected $callPrefix = 'mq_';
+    private $msgObj;
+    private $callPrefix = 'mq_';
 
     /**
      * MQ constructor.
@@ -30,9 +30,11 @@ class MQ extends Attach implements Base
     protected function mq_routingKey()
     {
         if ($this->msgObj) {
-            return array(
-                'routing_key' => $this->msgObj->get('routing_key'),
-            );
+            try {
+                return array('routing_key' => $this->msgObj->get('routing_key'),);
+            } catch (\Exception $e) {
+                return array('routing_key' => '');
+            }
         }
         return array();
     }
@@ -40,9 +42,11 @@ class MQ extends Attach implements Base
     protected function mq_consumerTag()
     {
         if ($this->msgObj) {
-            return array(
-                'consumer_tag' => $this->msgObj->get('consumer_tag'),
-            );
+            try {
+                return array('consumer_tag' => $this->msgObj->get('consumer_tag'));
+            } catch (\Exception $e) {
+                return array('consumer_tag' => '');
+            }
         }
         return array();
     }
