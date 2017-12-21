@@ -120,10 +120,8 @@ class Trace
      */
     public function tag($tag, $rewrite = true)
     {
-        if ($rewrite) {
+        if ($rewrite || !$this->tag) {
             $this->tag = (string)$tag;
-        } else if (!$this->tag) {
-            $this->tag = ucfirst(__FUNCTION__);
         }
         return $this;
     }
