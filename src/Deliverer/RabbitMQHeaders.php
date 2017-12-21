@@ -30,14 +30,16 @@ class RabbitMQHeaders implements Base
     public function unpack()
     {
         if (!is_object($this->msgObj)) return false;
-        $headers = array();
         try {
             $hdr = $this->msgObj->get('application_headers');
-            if (!$hdr || !($headers = $hdr->getNativeData())) {
+            $headers = $hdr->getNativeData();
+            if (!$headers) {
+                Logger::log(Debug::INFO, __METHOD__ . ': unpack failed!');
                 return false;
             }
         } catch (\Exception $e) {
             Logger::log(Debug::INFO, __METHOD__ . ': unpack exception : ' . $e->getMessage());
+            return false;
         }
         $trace = array();
         foreach (array_keys(Context::toArray()) as $key) {
@@ -61,10 +63,13 @@ class RabbitMQHeaders implements Base
     {
         if (!is_object($this->msgObj)) return false;
         try {
-            $hdr = $this->msgObj->get('application_headers');
-            if (!$hdr) $hdr = new AMQPTable();
+            try {
+                $hdr = $this->msgObj->get('application_headers');
+            } catch (\Exception $e) {
+                $hdr = new AMQPTable();
+            }
             foreach (Context::toArray() as $k => $v) {
-                $hdr->set($this->prefix . $k, $v, AMQPTable::T_STRING_SHORT);
+                $hdr->set($this->prefix . $k, $v, AMQPTable::T_STRING_LONG);
             }
             $this->msgObj->set('application_headers', $hdr);
             Logger::log(Debug::INFO, __METHOD__ . ': pack succeed!');
