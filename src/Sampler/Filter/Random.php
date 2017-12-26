@@ -9,8 +9,15 @@ use Tricolor\Tracker\Config\Filter;
  */
 class Random implements Base
 {
-    public function sample($rate = null)
+    private $rate = null;
+
+    public function __construct($rate = null)
     {
-        return rand(1, 100) <= (isset($rate) ? (int)$rate : (int)Filter::$randomFilterRate);
+        $this->rate = $rate;
+    }
+
+    public function sample()
+    {
+        return rand(1, 100) <= (isset($this->rate) ? (int)$this->rate : (int)Filter::$randomFilterRate);
     }
 }

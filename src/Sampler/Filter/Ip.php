@@ -10,6 +10,16 @@ class Ip implements Base
 {
     private $excludeIp = array();
     private $onlyIp = array();
+    private $server;
+
+    public function __construct(&$server = null)
+    {
+        if ($server) {
+            $this->server = &$server;
+        } else {
+            $this->server = &$_SERVER;
+        }
+    }
 
     public function sample()
     {
@@ -50,7 +60,7 @@ class Ip implements Base
      */
     private function checkOnlyIp()
     {
-        $ip = IpCommon::getIp();
+        $ip = IpCommon::getIp($this->server);
         foreach ($this->onlyIp as $only) {
             if ($only['is_regex']) {
                 $res = preg_match($only['pattern'], $ip);
@@ -68,7 +78,7 @@ class Ip implements Base
      */
     private function checkExcludeIp()
     {
-        $ip = IpCommon::getIp();
+        $ip = IpCommon::getIp($this->server);
         foreach ($this->excludeIp as $exclude) {
             if ($exclude['is_regex']) {
                 $res = preg_match($exclude['pattern'], $ip);
