@@ -12,6 +12,9 @@ class Reporter
 {
     public static function report($message)
     {
+        if (!is_callable(ReporterConfig::$reporter)) {
+            return false;
+        }
         $message = Coding::encode($message);
         $r_params = array();
         if (ReporterConfig::$reportParams) {

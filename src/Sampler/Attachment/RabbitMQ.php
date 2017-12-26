@@ -6,7 +6,7 @@ use Tricolor\Tracker\Config\Attachment;
  * User: Tricolor
  * DateTime: 2017/12/15 23:13
  */
-class MQ extends Attach implements Base
+class RabbitMQ extends Attach implements Base
 {
     private $msgObj;
     private $callPrefix = 'mq_';

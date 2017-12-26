@@ -11,7 +11,7 @@ use Tricolor\Tracker\Context;
  * Date: 2017/11/4
  * Time: 22:00
  */
-class MQ implements Base
+class RabbitMQMsg implements Base
 {
     private $message;
     private $msgObj;

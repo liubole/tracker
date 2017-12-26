@@ -5,7 +5,7 @@ use Tricolor\Tracker\Config\Debug;
 use Tricolor\Tracker\Context;
 
 /**
- *
+ * Created by PhpStorm.
  * User: Tricolor
  * DateTime: 2017/12/20 9:32
  */

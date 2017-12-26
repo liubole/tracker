@@ -1,7 +1,7 @@
 <?php
 use \Tricolor\Tracker\Trace;
-use \Tricolor\Tracker\Sampler\Attachment\MQ as MQAttach;
-use \Tricolor\Tracker\Deliverer\MQ as MQDeliverer;
+use \Tricolor\Tracker\Sampler\Attachment\RabbitMQ as MQAttach;
+use \Tricolor\Tracker\Deliverer\RabbitMQHeaders as MQDeliverer;
 /**
  * Created by PhpStorm.
  * User: Tricolor
@@ -12,9 +12,11 @@ class RabbitMQ
 {
     public static function publish($message)
     {
+        //
+        $msg = new \PhpAmqpLib\Message\AMQPMessage($message);
         Trace::instance()
-            ->addAttachments(new MQAttach())
-            ->delivery(new MQDeliverer($message))
+            ->addAttachments(new MQAttach($msg))
+            ->delivery(new MQDeliverer($msg))
             ->tag('PubMsg')
             ->watch($message);
         //real publish

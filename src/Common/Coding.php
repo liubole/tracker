@@ -6,7 +6,8 @@ use Tricolor\Tracker\Config\Format;
 /**
  *
  * User: Tricolor
- * DateTime: 2017/12/18 15:47
+ * Date: 2017/12/18
+ * Time: 15:47
  */
 class Coding
 {
