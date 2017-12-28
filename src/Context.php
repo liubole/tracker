@@ -15,6 +15,7 @@ class Context
     public static $TraceId;
     public static $RpcId;
     public static $At;
+    public static $On;
 
     public static function get()
     {

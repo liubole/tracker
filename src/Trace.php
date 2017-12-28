@@ -9,6 +9,7 @@ namespace Tricolor\Tracker;
 use Tricolor\Tracker\Common\StrUtils;
 use Tricolor\Tracker\Common\Time;
 use Tricolor\Tracker\Common\UID;
+use Tricolor\Tracker\Config\Env;
 use Tricolor\Tracker\Sampler\Filter\Base as FilterBase;
 use Tricolor\Tracker\Sampler\Attachment\base as AttachBase;
 
@@ -42,6 +43,7 @@ class Trace
         }
         Context::$TraceId = UID::create();
         StrUtils::rpcInit(Context::$RpcId);
+        $this->setEnv();
         $this->tag(ucfirst(__FUNCTION__), false);
         $this->watch = true;
         return $this;
@@ -61,6 +63,7 @@ class Trace
             $this->watch = false;
             return $this;
         }
+        $this->setEnv();
         StrUtils::rpcNext(Context::$RpcId);
         $this->tag(ucfirst(__FUNCTION__), false);
         $this->watch = true;
@@ -73,7 +76,7 @@ class Trace
      */
     public function delivery($deliverer)
     {
-        if (!Context::$TraceId || !$deliverer->pack()) {
+        if (!$this->isTraceOn() || !$deliverer->pack()) {
             $this->watch = false;
             return $this;
         }
@@ -88,7 +91,7 @@ class Trace
      */
     public function watch($_ = null)
     {
-        if (!Context::$TraceId || !$this->watch) {
+        if (!$this->isTraceOn() || !$this->watch) {
             return false;
         }
         Context::$At = Time::get();
@@ -98,7 +101,7 @@ class Trace
     }
 
     /**
-     * 添加过滤器
+     * add filters
      * @param null $_ array \Tricolor\Tracker\Sampler\Filter\Base
      * @return $this
      */
@@ -113,7 +116,7 @@ class Trace
     }
 
     /**
-     * 设置tag
+     * set tag
      * @param $tag string
      * @param $rewrite bool
      * @return $this
@@ -127,7 +130,7 @@ class Trace
     }
 
     /**
-     * 附件获取
+     * add attachments
      * @param $_ \Tricolor\Tracker\Sampler\Attachment\Base
      * @return $this
      */
@@ -149,6 +152,11 @@ class Trace
         return new Trace();
     }
 
+    /**
+     * get users self-defined watch info
+     * @param $args
+     * @return array
+     */
     private function getReport($args)
     {
         $attachments = array();
@@ -166,6 +174,35 @@ class Trace
             'Attach' => $attachments,
             'Extra' => $args,
         ));
+    }
+
+    private function isTraceOn()
+    {
+        if (is_int(Env::$force)) {
+            $on = (Env::$force & Env::ON) === Env::ON;
+            if ($on || (Env::$force & Env::OFF) === Env::OFF) {
+                return $on;
+            }
+        }
+        isset(Context::$On) OR (Context::$On = 1);
+        return ((bool)Context::$On) && ((bool)Context::$TraceId);
+    }
+
+    /**
+     * if AFFECT_ALL is set up，Context::$On will be reset
+     */
+    private function setEnv()
+    {
+        if (is_int(Env::$force)) {
+            if ((Env::$force & Env::AFFECT_ALL) === Env::AFFECT_ALL) {
+                $on = (Env::$force & Env::ON) === Env::ON;
+                if ($on || (Env::$force & Env::OFF) === Env::OFF) {
+                    Context::$On = (int)$on;
+                }
+            }
+        }
+        isset(Context::$On) OR (Context::$On = 1);
+        return $this;
     }
 
 }
