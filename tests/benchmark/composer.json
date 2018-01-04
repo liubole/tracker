@@ -1,0 +1,15 @@
+{
+  "name": "tracker/test",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packagist.phpcomposer.com"
+    },
+    {
+      "packagist": false
+    }
+  ],
+  "autoload": {
+    "classmap": ["src/"]
+  }
+}
