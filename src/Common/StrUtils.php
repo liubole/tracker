@@ -1,22 +1,26 @@
 <?php
-namespace Tricolor\Tracker\Common;
-
 /**
- * Created by PhpStorm.
  * User: Tricolor
  * Date: 2017/12/9
  * Time: 20:46
  */
+namespace Tricolor\Tracker\Common;
+
 class StrUtils
 {
     public static function startsWith($haystack, $needle)
     {
-        return strpos($haystack, $needle) === 0;
+        return substr_compare($haystack, $needle, 0, strlen($needle)) === 0;
     }
 
     public static function endsWith($haystack, $needle)
     {
-        return strrpos($haystack, $needle) === strlen($haystack) - strlen($needle);
+        return substr_compare($haystack, $needle, -strlen($needle), strlen($needle)) === 0;
+    }
+
+    public static function shift($haystack, $shift_length)
+    {
+        return substr($haystack, $shift_length);
     }
 
     public static function rpcStep(&$str)

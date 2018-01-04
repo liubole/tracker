@@ -1,10 +1,11 @@
 <?php
-namespace Tricolor\Tracker\Common;
 /**
- *
  * User: Tricolor
- * DateTime: 2017/12/20 15:48
+ * Date: 2017/12/20
+ * Time: 15:48
  */
+namespace Tricolor\Tracker\Common;
+
 class Env
 {
     private static $root;
@@ -15,11 +16,4 @@ class Env
         return self::$root;
     }
 
-    public static function logRoot()
-    {
-        $root = self::root();
-        $log_root = $root . DIRECTORY_SEPARATOR . 'logs';
-        is_dir($log_root) OR mkdir($log_root, 0777, true);
-        return is_dir($log_root) ? $log_root : false;
-    }
 }

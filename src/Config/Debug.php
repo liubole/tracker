@@ -1,11 +1,11 @@
 <?php
+/**
+ * User: Tricolor
+ * Date: 2017/12/20
+ * Time: 15:47
+ */
 namespace Tricolor\Tracker\Config;
 
-/**
- *
- * User: Tricolor
- * DateTime: 2017/12/20 15:47
- */
 class Debug
 {
     const ERROR = 1;
@@ -15,5 +15,5 @@ class Debug
 
     public static $debug = false;
     public static $thresholds = array(Debug::ERROR, Debug::WARNING, Debug::DEBUG, Debug::INFO);
-    public static $logRoot = array('Tricolor\Tracker\Common\Env', 'logRoot');
+    public static $logRoot = array('Tricolor\Tracker\Common\Logger', 'logRoot');
 }

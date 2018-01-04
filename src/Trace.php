@@ -1,150 +1,233 @@
 <?php
-namespace Tricolor\Tracker;
 /**
- * Created by PhpStorm.
  * User: Tricolor
  * Date: 2017/11/4
  * Time: 20:41
  */
+namespace Tricolor\Tracker;
+use Tricolor\Tracker\Config\TraceEnv;
+use Tricolor\Tracker\Core\Context;
 use Tricolor\Tracker\Common\StrUtils;
 use Tricolor\Tracker\Common\Time;
 use Tricolor\Tracker\Common\UID;
-use Tricolor\Tracker\Config\Env;
-use Tricolor\Tracker\Sampler\Filter\Base as FilterBase;
-use Tricolor\Tracker\Sampler\Attachment\base as AttachBase;
+use Tricolor\Tracker\Core\Collector;
 
 class Trace
 {
-    private $tag = "";
     /**
-     * @var array \Tricolor\Tracker\Sampler\Attachment\Base
+     * @var array
      */
-    private $attachments = array();
-    /**
-     * @var array \Tricolor\Tracker\Sampler\Filter\Base
-     */
-    private $filters = array();
-
-    private $watch = true;
+    private $records;
 
     /**
-     * 生成跟踪上下文
-     * @param $filter \Tricolor\Tracker\Sampler\Filter\Base
-     * @return $this
+     * @var array
      */
-    public function init($filter = null)
+    private $record_results;
+
+    /**
+     * @var array
+     */
+    private $force_records;
+
+    /**
+     * @var array \Tricolor\Tracker\Filter\Base
+     */
+    private static $record_filters;
+
+    const TraceId = 'TraceId';
+    const RpcId = 'RpcId';
+
+    public function __construct()
     {
-        $this->addFilters($filter);
-        foreach ($this->filters as $f) {
-            if (!$f->sample()) {
-                $this->watch = false;
-                return $this;
-            }
-        }
-        Context::$TraceId = UID::create();
-        StrUtils::rpcInit(Context::$RpcId);
-        $this->setEnv();
-        $this->tag(ucfirst(__FUNCTION__), false);
-        $this->watch = true;
-        return $this;
+        $this->records = array();
+        $this->force_records = array();
+        $this->record_results = array();
+        $this->defaultRecord();
     }
 
     /**
-     * @param $deliverer \Tricolor\Tracker\Deliverer\Base
-     * @param bool $auto_init
-     * @return $this
+     * Initialization the context
+     * @return array
      */
-    public function recv($deliverer, $auto_init = false)
+    public static function init()
     {
-        if (!$deliverer->unpack()) {
+        if (isset(TraceEnv::$TraceForce) && (TraceEnv::$TraceForce == TraceEnv::OFF)) {
+            return array();
+        }
+        Context::set(array(
+            self::TraceId => UID::create(),
+            self::RpcId => StrUtils::rpcInit(Context::get(self::RpcId)),
+        ));
+        return Context::toArray();
+    }
+
+    /**
+     * Set the method to pass the context
+     * @param $deliverer \Tricolor\Tracker\Deliverer\Base
+     * @return boolean
+     */
+    public static function transBy($deliverer)
+    {
+        if (!self::isTraceOn()) return false;
+        return $deliverer
+            ? $deliverer->pack()
+            : false;
+    }
+
+    /**
+     * Receive the context by point out the way we used to deliver the context
+     * @param $from_deliverer \Tricolor\Tracker\Deliverer\Base
+     * @param boolean $auto_init
+     * @return array
+     */
+    public static function buildFrom($from_deliverer, $auto_init = false)
+    {
+        if (isset(TraceEnv::$TraceForce) && self::forceValid(TraceEnv::$TraceForce)) {
+            if (TraceEnv::$TraceForce == TraceEnv::OFF) {
+                return array();
+            }
+        }
+        if (!$from_deliverer->unpack()) {
             if ($auto_init) {
-                return $this->init();
+                return Trace::init();
             }
-            $this->watch = false;
-            return $this;
         }
-        $this->setEnv();
-        StrUtils::rpcNext(Context::$RpcId);
-        $this->tag(ucfirst(__FUNCTION__), false);
-        $this->watch = true;
-        return $this;
+        Context::set(self::RpcId, StrUtils::rpcNext(Context::get(self::RpcId)));
+        if (!is_null($force = Context::get('TraceForce')) && self::forceValid($force)) {
+            if (TraceEnv::$TraceForce == TraceEnv::OFF) {
+                return array();
+            }
+        }
+        return Context::toArray();
     }
 
     /**
-     * @param $deliverer \Tricolor\Tracker\Deliverer\Base
+     * Transparent transmission
+     * @param $key string|array
+     * @param $val string|callable
+     * @return array
+     */
+    public static function transport($key, $val = null)
+    {
+        if (!self::isTraceOn()) return array();
+        $sets = array();
+        $transports = is_array($key) ? $key : array($key => $val);
+        foreach ($transports as $key => $val) {
+            if (!in_array($key, array(self::TraceId, self::RpcId))) {
+                $sets[(string)$key] = self::getTransVal($val);
+            }
+        }
+        empty($sets) OR Context::set($sets);
+        return Context::toArray();
+    }
+
+    /**
+     * Remove the keys you do not want to track
+     * @param $_keys string
+     * @return array
+     */
+    public static function untrace($_keys = null)
+    {
+        if (!self::isTraceOn()) return array();
+        $untraces = array_map("strval", func_get_args());
+        Context::remove($untraces);
+        return Context::toArray();
+    }
+
+    /**
+     * Remove the keys we do not want to track, except for $_excludes
+     * @param $_excludes string
+     * @return array
+     */
+    public static function untraceAll($_excludes = null)
+    {
+        if (!self::isTraceOn()) return array();
+        $traceholds = array_map("strval", func_get_args());
+        Context::removeAll($traceholds);
+        return Context::toArray();
+    }
+
+    /**
+     * Use filters to sample.
+     * $result = filter1->() & filter2 & filter3...
+     * @param $_filters callable|Filter\Base
+     */
+    public static function recordFilter($_filters)
+    {
+        if (!self::isTraceOn()) return;
+        is_array(self::$record_filters) OR (self::$record_filters = array());
+        foreach (func_get_args() as $filter) {
+            if (is_callable($filter) || ($filter instanceof Filter\Base)) {
+                self::$record_filters[] = $filter;
+            }
+        }
+    }
+
+    /**
+     * Record something what you want.
+     * @param $key string
+     * @param $val string|callable
+     * @param $switch null|boolean|callable($context, $records)
      * @return $this
      */
-    public function delivery($deliverer)
+    public function record($key, $val, $switch = null)
     {
-        if (!$this->isTraceOn() || !$deliverer->pack()) {
-            $this->watch = false;
-            return $this;
-        }
-        $this->tag(ucfirst(__FUNCTION__), false);
-        $this->watch = true;
+        if (!self::isRecordOn()) return $this;
+        $this->records[] = array(
+            'key' => $key,
+            'val' => $val,
+            'switch' => $switch
+        );
         return $this;
     }
 
     /**
-     * @param null $_ extra data
+     * Force to record, ignoring recordFilter
+     * @param $key string
+     * @param $val string|callable
+     * @param $switch null|boolean|callable($context, $records)
+     * @return $this
+     */
+    public function forceRecord($key, $val, $switch = null)
+    {
+        if (!self::isRecordOn()) return $this;
+        $this->force_records[] = array(
+            'key' => $key,
+            'val' => $val,
+            'switch' => $switch
+        );
+        return $this;
+    }
+
+    /**
+     * Attach a tag to data
+     * @param $tag string
+     * @return $this
+     */
+    public function tag($tag)
+    {
+        if (!self::isRecordOn()) return $this;
+        if ($tag = (string)$tag) {
+            $this->record_results['Tag'] = $tag;
+        }
+        return $this;
+    }
+
+    /**
+     * Record data (by collector)
      * @return bool
      */
-    public function watch($_ = null)
+    public function run()
     {
-        if (!$this->isTraceOn() || !$this->watch) {
-            return false;
-        }
-        Context::$At = Time::get();
-        Reporter::report($this->getReport(func_get_args()));
-        StrUtils::rpcStep(Context::$RpcId);
-        return true;
+        $record_res = $this->doRecord();
+        $this->record_results['At'] = Time::get();
+        self::isReportOn() AND Collector::report($this->getToReport());
+        Context::set(self::RpcId, StrUtils::rpcStep(Context::get(self::RpcId)));
+        return $record_res;
     }
 
     /**
-     * add filters
-     * @param null $_ array \Tricolor\Tracker\Sampler\Filter\Base
-     * @return $this
-     */
-    public function addFilters($_ = null)
-    {
-        foreach (func_get_args() as $filter) {
-            if ($filter instanceof FilterBase) {
-                $this->filters[] = $filter;
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * set tag
-     * @param $tag string
-     * @param $rewrite bool
-     * @return $this
-     */
-    public function tag($tag, $rewrite = true)
-    {
-        if ($rewrite || !$this->tag) {
-            $this->tag = (string)$tag;
-        }
-        return $this;
-    }
-
-    /**
-     * add attachments
-     * @param $_ \Tricolor\Tracker\Sampler\Attachment\Base
-     * @return $this
-     */
-    public function addAttachments($_ = null)
-    {
-        foreach (func_get_args() as $attachment) {
-            if ($attachment instanceof AttachBase) {
-                $this->attachments[] = $attachment;
-            }
-        }
-        return $this;
-    }
-
-    /**
+     * New instance of Trace
      * @return Trace
      */
     public static function instance()
@@ -153,56 +236,174 @@ class Trace
     }
 
     /**
-     * get users self-defined watch info
-     * @param $args
+     * Get Context
      * @return array
      */
-    private function getReport($args)
+    private function getToReport()
     {
-        $attachments = array();
-        foreach ($this->attachments as $attachment) {
-            if ($attach = $attachment->getAll()) {
-                if (is_array($attach)) {
-                    $attachments = array_merge($attachments, $attach);
-                } else {
-                    $attachments[] = $attach;
+        return array_merge($this->record_results, Context::toArray());
+    }
+
+    private function doRecord()
+    {
+        if (!self::isRecordOn()) {
+            return false;
+        }
+        // Force to record
+        foreach ($this->force_records as $record) {
+            if (!($key = strval($record['key']))) continue;
+            if ($this->isSwitchOn($record['switch'])) {
+                $this->record_results[$key] = $this->getRecordVal($record['val']);
+            }
+        }
+        // Record filter
+        $record_allow = true;
+        if (is_array(self::$record_filters)) {
+            foreach (self::$record_filters as $filter) {
+                if ($this->filterDeny($filter)) {
+                    $record_allow = false;
+                    break;
                 }
             }
         }
-        return array_merge(Context::toArray(), array(
-            'Tag' => $this->tag,
-            'Attach' => $attachments,
-            'Extra' => $args,
-        ));
-    }
-
-    private function isTraceOn()
-    {
-        if (is_int(Env::$force)) {
-            $on = (Env::$force & Env::ON) === Env::ON;
-            if ($on || (Env::$force & Env::OFF) === Env::OFF) {
-                return $on;
+        // Record
+        if ($record_allow) {
+            foreach ($this->records as $record) {
+                if (!($key = strval($record['key']))) continue;
+                if ($this->isSwitchOn($record['switch'])) {
+                    $this->record_results[$key] = $this->getRecordVal($record['val']);
+                }
             }
         }
-        isset(Context::$On) OR (Context::$On = 1);
-        return ((bool)Context::$On) && ((bool)Context::$TraceId);
+        return true;
     }
 
     /**
-     * if AFFECT_ALL is set up，Context::$On will be reset
+     *
      */
-    private function setEnv()
+    private function defaultRecord()
     {
-        if (is_int(Env::$force)) {
-            if ((Env::$force & Env::AFFECT_ALL) === Env::AFFECT_ALL) {
-                $on = (Env::$force & Env::ON) === Env::ON;
-                if ($on || (Env::$force & Env::OFF) === Env::OFF) {
-                    Context::$On = (int)$on;
-                }
-            }
-        }
-        isset(Context::$On) OR (Context::$On = 1);
-        return $this;
+//        $this->record('Ip', Common\Server::getIp(), function ($context) {
+//            return isset($context['CloseIp']) && ($context['CloseIp'] == TraceEnv::OFF);
+//        });
     }
 
+    /**
+     * Is Trace on?
+     * @return bool
+     */
+    private static function isTraceOn()
+    {
+        if (!Context::get(self::TraceId)) {
+            return false;
+        }
+        if (isset(TraceEnv::$TraceForce) && self::forceValid(TraceEnv::$TraceForce)) {
+            return TraceEnv::$TraceForce == TraceEnv::ON;
+        }
+        if (!is_null($force = Context::get('TraceForce')) && self::forceValid($force)) {
+            return $force == TraceEnv::ON;
+        }
+        return true;
+    }
+
+    /**
+     * Is Record on?
+     * @return bool
+     */
+    private static function isRecordOn()
+    {
+        if (!self::isTraceOn()) {
+            return false;
+        }
+        if (isset(TraceEnv::$RecordForce) && self::forceValid(TraceEnv::$RecordForce)) {
+            return TraceEnv::$RecordForce == TraceEnv::ON;
+        }
+        if (!is_null($force = Context::get('RecordForce')) && self::forceValid($force)) {
+            return $force == TraceEnv::ON;
+        }
+        return true;
+    }
+
+    /**
+     * Is Trace on?
+     * FALSE:
+     *      1. If Context::TraceId is empty
+     *      2. If TraceEnv::$ReportForce is valid, and it's not equal to TraceEnv::ON
+     *      3. If TraceEnv::$ReportForce is valid, and it's not equal to TraceEnv::ON
+     * TRUE:
+     *      1. Except for the case before
+     * @return bool
+     */
+    private static function isReportOn()
+    {
+        if (!self::isTraceOn()) {
+            return false;
+        }
+        if (isset(TraceEnv::$ReportForce) && self::forceValid(TraceEnv::$ReportForce)) {
+            return TraceEnv::$ReportForce == TraceEnv::ON;
+        }
+        if (!is_null($force = Context::get('ReportForce')) && self::forceValid($force)) {
+            return $force == TraceEnv::ON;
+        }
+        return true;
+    }
+
+    /**
+     * Return TRUE only when it's equal to TraceEnv::ON or TraceEnv::OFF
+     * @param $force
+     * @return bool
+     */
+    private static function forceValid($force)
+    {
+       return ($force == TraceEnv::ON) || ($force == TraceEnv::OFF);
+    }
+
+    /**
+     * @param $val
+     * @return mixed
+     */
+    private static function getTransVal($val)
+    {
+        return is_callable($val) ? call_user_func($val, Context::toArray()) : $val;
+    }
+
+    /**
+     * @param $filter callable|Filter\Base
+     * @return bool|null
+     */
+    private function filterDeny($filter)
+    {
+        if (($filter instanceof Filter\Base) && !$filter->sample()) {
+            return true;
+        }
+        if (is_callable($filter)
+            && !call_user_func($filter, Context::toArray(), $this->record_results)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param $switch
+     * @return bool
+     */
+    private function isSwitchOn($switch)
+    {
+        return is_bool($switch)
+            ? $switch
+            : (is_callable($switch)
+                ? (bool)call_user_func($switch, Context::toArray(), $this->record_results)
+                : true);
+    }
+
+    /**
+     * @param $val
+     * @return mixed
+     */
+    private function getRecordVal($val)
+    {
+        return is_callable($val)
+            ? call_user_func($val, Context::toArray(), $this->record_results)
+            : $val;
+    }
 }

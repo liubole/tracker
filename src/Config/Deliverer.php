@@ -1,13 +1,11 @@
 <?php
-namespace Tricolor\Tracker\Config;
-
 /**
- * Created by PhpStorm.
  * User: Tricolor
  * Date: 2017/12/13
  * Time: 11:23
- *
  */
+namespace Tricolor\Tracker\Config;
+
 class Deliverer
 {
     public static $deliverPostTraceKey = '__trace__';

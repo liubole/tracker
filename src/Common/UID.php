@@ -1,11 +1,11 @@
 <?php
-namespace Tricolor\Tracker\Common;
 /**
- * Created by PhpStorm.
  * User: Tricolor
  * Date: 2017/11/4
  * Time: 20:57
  */
+namespace Tricolor\Tracker\Common;
+
 class UID
 {
     public static function create()

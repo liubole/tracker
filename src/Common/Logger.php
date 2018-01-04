@@ -1,12 +1,12 @@
 <?php
+/**
+ * User: Tricolor
+ * Date: 2017/12/20
+ * Time: 15:52
+ */
 namespace Tricolor\Tracker\Common;
 use Tricolor\Tracker\Config\Debug;
 
-/**
- *
- * User: Tricolor
- * DateTime: 2017/12/20 15:52
- */
 class Logger
 {
     private static $level_names = array(
@@ -50,5 +50,13 @@ class Logger
         }
 
         return isset($result) && is_int($result);
+    }
+
+    public static function logRoot()
+    {
+        $root = Env::root();
+        $log_root = $root . DIRECTORY_SEPARATOR . 'logs';
+        is_dir($log_root) OR mkdir($log_root, 0777, true);
+        return is_dir($log_root) ? $log_root : false;
     }
 }

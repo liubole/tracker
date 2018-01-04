@@ -1,14 +1,13 @@
 <?php
-namespace Tricolor\Tracker\Deliverer;
-use Tricolor\Tracker\Common\Logger;
-use Tricolor\Tracker\Config\Debug;
-use Tricolor\Tracker\Context;
-
 /**
- * Created by PhpStorm.
  * User: Tricolor
- * DateTime: 2017/12/20 9:32
+ * Date: 2017/12/20
+ * Time: 9:32
  */
+namespace Tricolor\Tracker\Deliverer;
+use Tricolor\Tracker\Common\StrUtils;
+use Tricolor\Tracker\Core\Context;
+
 class HttpHeaders implements Base
 {
     private $prefix = 'Trace-';// [A-Z][\w\-\d]+
@@ -26,17 +25,15 @@ class HttpHeaders implements Base
     {
         $headers = $this->getHeaders();
         $trace = array();
-        foreach (array_keys(Context::toArray()) as $key) {
-            if (isset($headers[$this->prefix . $key])) {
-                $trace[$key] = $headers[$this->prefix . $key];
+        foreach ($headers as $key => $val) {
+            if (StrUtils::startsWith($key, $this->prefix)) {
+                $trace[substr($key, strlen($this->prefix))] = $val;
             }
         }
         if ($trace) {
             Context::set($trace);
-            Logger::log(Debug::INFO, __METHOD__ . ': unpack succeed!');
             return true;
         }
-        Logger::log(Debug::WARNING, __METHOD__ . ': unpack failed!');
         return false;
     }
 

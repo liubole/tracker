@@ -1,29 +1,26 @@
 <?php
-namespace Tricolor\Tracker\Common;
-use Tricolor\Tracker\Config\Debug;
-use Tricolor\Tracker\Config\Format;
-
 /**
- *
  * User: Tricolor
  * Date: 2017/12/18
  * Time: 15:47
  */
+namespace Tricolor\Tracker\Common;
+use Tricolor\Tracker\Config\Collector;
+
 class Coding
 {
     public static function encode($var)
     {
         try {
-            switch (Format::$codeType) {
-                case Format::codeTypeJson:
+            switch (Collector::$reportDataType) {
+                case Collector::dataTypeJson:
                     return @json_encode($var);
-                case Format::codeTypeSerialize:
+                case Collector::dataTypeSerialize:
                     return @serialize($var);
                 default:
                     break;
             }
         } catch (\Exception $e) {
-            Logger::log(Debug::ERROR, __METHOD__ . ': exception :' . $e->getMessage());
         }
         return null;
     }
@@ -31,16 +28,15 @@ class Coding
     public static function decode($str)
     {
         try {
-            switch (Format::$codeType) {
-                case Format::codeTypeJson:
+            switch (Collector::$reportDataType) {
+                case Collector::dataTypeJson:
                     return @json_decode($str, 1);
-                case Format::codeTypeSerialize:
+                case Collector::dataTypeSerialize:
                     return @unserialize($str);
                 default:
                     break;
             }
         } catch (\Exception $e) {
-            Logger::log(Debug::ERROR, __METHOD__ . ': exception :' . $e->getMessage());
         }
         return null;
     }
