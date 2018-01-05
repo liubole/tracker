@@ -15,7 +15,7 @@ class RabbitMQ
     private static $conn;
 
     /**
-     * @param $message
+     * @param $message mixed
      * @throws
      */
     public static function pub($message)
@@ -60,7 +60,7 @@ class RabbitMQ
     private static function getChannel($conn, $exchange)
     {
         if ($conn) {
-            $channel = $conn->channel();
+            $channel = $conn->channel($conn->get_free_channel_id());
             $channel->exchange_declare($exchange, 'topic', false, true, false);
             return $channel;
         }

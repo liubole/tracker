@@ -48,6 +48,12 @@ class Trace
      * Context key: RpcId
      */
     const RpcId = 'RpcId';
+    /**
+     * Names of Switch
+     */
+    const TraceSwitch = 'TraceSwitch';
+    const RecordSwitch = 'RecordSwitch';
+    const CollectSwitch = 'CollectSwitch';
 
     public function __construct()
     {
@@ -63,7 +69,7 @@ class Trace
      */
     public static function init()
     {
-        if (isset(TraceEnv::$TraceForce) && (TraceEnv::$TraceForce == TraceEnv::OFF)) {
+        if (isset(TraceEnv::$TraceSwitch) && (TraceEnv::$TraceSwitch == TraceEnv::OFF)) {
             return array();
         }
         Context::set(array(
@@ -94,8 +100,8 @@ class Trace
      */
     public static function buildFrom($from_deliverer, $auto_init = false)
     {
-        if (isset(TraceEnv::$TraceForce) && self::forceValid(TraceEnv::$TraceForce)) {
-            if (TraceEnv::$TraceForce == TraceEnv::OFF) {
+        if (isset(TraceEnv::$TraceSwitch) && self::forceIsValid(TraceEnv::$TraceSwitch)) {
+            if (TraceEnv::$TraceSwitch == TraceEnv::OFF) {
                 return array();
             }
         }
@@ -105,8 +111,8 @@ class Trace
             }
         }
         Context::set(self::RpcId, StrUtils::rpcNext(Context::get(self::RpcId)));
-        if (!is_null($force = Context::get('TraceForce')) && self::forceValid($force)) {
-            if (TraceEnv::$TraceForce == TraceEnv::OFF) {
+        if (!is_null($force = Context::get(self::TraceSwitch)) && self::forceIsValid($force)) {
+            if (TraceEnv::$TraceSwitch == TraceEnv::OFF) {
                 return array();
             }
         }
@@ -191,6 +197,21 @@ class Trace
 
     /**
      * Is Trace on?
+     * 1. If Context::TraceId is empty. => FALSE
+     * 2. If TraceEnv::$TraceForce is not null and valid:
+     *      2.1 If it's equal to TraceEnv::ON.  => TRUE
+     *      2.2 If it's not equal to TraceEnv::ON.  => FALSE
+     * 3. If Context::$TraceForce is not null and valid:
+     *      3.1 If it's equal to TraceEnv::ON.  => TRUE
+     *      3.2 If it's not equal to TraceEnv::ON.  => FALSE
+     * 4. Except for the case before.   => TRUE
+     * 5. How to open/close tracking by force:
+     *      5.1. Open:
+     *          transport('TraceSwitch', TraceEnv::ON); or TraceEnv::$TraceSwitch = TraceEnv::ON;
+     *      5.2. Close:
+     *          transport('TraceSwitch', TraceEnv::OFF); or TraceEnv::$TraceSwitch = TraceEnv::OFF;
+     * 6. TraceEnv::$$TraceSwitch's priority is higher than Context::$TraceSwitch.
+     * 7. Switch is on by default.
      * @return bool
      */
     private static function isTraceOn()
@@ -198,10 +219,10 @@ class Trace
         if (!Context::get(self::TraceId)) {
             return false;
         }
-        if (isset(TraceEnv::$TraceForce) && self::forceValid(TraceEnv::$TraceForce)) {
-            return TraceEnv::$TraceForce == TraceEnv::ON;
+        if (isset(TraceEnv::$TraceSwitch) && self::forceIsValid(TraceEnv::$TraceSwitch)) {
+            return TraceEnv::$TraceSwitch == TraceEnv::ON;
         }
-        if (!is_null($force = Context::get('TraceForce')) && self::forceValid($force)) {
+        if (!is_null($force = Context::get(self::TraceSwitch)) && self::forceIsValid($force)) {
             return $force == TraceEnv::ON;
         }
         return true;
@@ -209,6 +230,13 @@ class Trace
 
     /**
      * Is Record on?
+     * 1. How to open/close tracking by force:
+     *      1.1. Open:
+     *          transport('RecordSwitch', TraceEnv::ON); or TraceEnv::$RecordSwitch = TraceEnv::ON;
+     *      1.2. Close:
+     *          transport('RecordSwitch', TraceEnv::OFF); or TraceEnv::$RecordSwitch = TraceEnv::OFF;
+     * 2. TraceEnv::$RecordSwitch's priority is higher than Context::$RecordSwitch.
+     * 3. Switch is on by default.
      * @return bool
      */
     private static function isRecordOn()
@@ -216,34 +244,35 @@ class Trace
         if (!self::isTraceOn()) {
             return false;
         }
-        if (isset(TraceEnv::$RecordForce) && self::forceValid(TraceEnv::$RecordForce)) {
-            return TraceEnv::$RecordForce == TraceEnv::ON;
+        if (isset(TraceEnv::$RecordSwitch) && self::forceIsValid(TraceEnv::$RecordSwitch)) {
+            return TraceEnv::$RecordSwitch == TraceEnv::ON;
         }
-        if (!is_null($force = Context::get('RecordForce')) && self::forceValid($force)) {
+        if (!is_null($force = Context::get(self::RecordSwitch)) && self::forceIsValid($force)) {
             return $force == TraceEnv::ON;
         }
         return true;
     }
 
     /**
-     * Is Trace on?
-     * FALSE:
-     *      1. If Context::TraceId is empty
-     *      2. If TraceEnv::$ReportForce is valid, and it's not equal to TraceEnv::ON
-     *      3. If TraceEnv::$ReportForce is valid, and it's not equal to TraceEnv::ON
-     * TRUE:
-     *      1. Except for the case before
+     * Is Report on?
+     * 1. How to open/close tracking by force:
+     *      1.1. Open:
+     *          transport('CollectSwitch', TraceEnv::ON); or TraceEnv::$CollectSwitch = TraceEnv::ON;
+     *      1.2. Close:
+     *          transport('CollectSwitch', TraceEnv::OFF); or TraceEnv::$CollectSwitch = TraceEnv::OFF;
+     * 2. TraceEnv::$CollectSwitch's priority is higher than Context::$CollectSwitch.
+     * 3. Switch is on by default.
      * @return bool
      */
-    private static function isReportOn()
+    private static function isCollectOn()
     {
         if (!self::isTraceOn()) {
             return false;
         }
-        if (isset(TraceEnv::$ReportForce) && self::forceValid(TraceEnv::$ReportForce)) {
-            return TraceEnv::$ReportForce == TraceEnv::ON;
+        if (isset(TraceEnv::$CollectSwitch) && self::forceIsValid(TraceEnv::$CollectSwitch)) {
+            return TraceEnv::$CollectSwitch == TraceEnv::ON;
         }
-        if (!is_null($force = Context::get('ReportForce')) && self::forceValid($force)) {
+        if (!is_null($force = Context::get(self::CollectSwitch)) && self::forceIsValid($force)) {
             return $force == TraceEnv::ON;
         }
         return true;
@@ -254,7 +283,7 @@ class Trace
      * @param $force
      * @return bool
      */
-    private static function forceValid($force)
+    private static function forceIsValid($force)
     {
        return ($force == TraceEnv::ON) || ($force == TraceEnv::OFF);
     }
@@ -315,9 +344,9 @@ class Trace
      */
     public function run()
     {
-        $record_res = $this->doRecord();
         $this->record_results['At'] = Time::get();
-        self::isReportOn() AND Collector::report($this->getToReport());
+        $record_res = $this->doRecord();
+        self::isCollectOn() AND Collector::collect($this->getToReport());
         Context::set(self::RpcId, StrUtils::rpcStep(Context::get(self::RpcId)));
         return $record_res;
     }
@@ -389,9 +418,10 @@ class Trace
         if (($filter instanceof Filter\Base) && !$filter->sample()) {
             return true;
         }
-        if (is_callable($filter)
-            && !call_user_func($filter, Context::toArray(), $this->record_results)) {
-            return true;
+        if (is_callable($filter)) {
+            if (!call_user_func($filter, Context::toArray(), $this->record_results)) {
+                return true;
+            }
         }
         return false;
     }
@@ -403,11 +433,9 @@ class Trace
      */
     private function isSwitchOn($switch)
     {
-        return is_bool($switch)
-            ? $switch
-            : (is_callable($switch)
-                ? (bool)call_user_func($switch, Context::toArray(), $this->record_results)
-                : true);
+        return is_callable($switch)
+            ? (bool)call_user_func($switch, Context::toArray(), $this->record_results)
+            : (bool)$switch;
     }
 
     /**
@@ -417,7 +445,9 @@ class Trace
      */
     private static function getTransVal($val)
     {
-        return is_callable($val) ? call_user_func($val, Context::toArray()) : $val;
+        return is_callable($val)
+            ? (string)call_user_func($val, Context::toArray())
+            : (string)$val;
     }
 
     /**
@@ -428,7 +458,7 @@ class Trace
     private function getRecordVal($val)
     {
         return is_callable($val)
-            ? call_user_func($val, Context::toArray(), $this->record_results)
-            : $val;
+            ? (string)call_user_func($val, Context::toArray(), $this->record_results)
+            : (string)$val;
     }
 }

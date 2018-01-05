@@ -46,7 +46,7 @@ class Controller
             ->tag('Return')
             ->record($id . 'Output', $output)
             ->run();
-        echo ($noencode ? $output : json_encode($output));
+        echo json_encode($output);
         die();
     }
 }

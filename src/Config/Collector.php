@@ -11,13 +11,28 @@ class Collector
     const dataTypeJson = 'json';
     const dataTypeSerialize = 'serialize';
 
-    public static $reporter = null;
-    // array(xx, ..., '{param}', xx), param: /{[\w_\d]+}/
-    // or string: xx
-    // or array: array(var1, var2, ...)
-    public static $reportParams = null;
-    // json or serialize
-    public static $reportDataType = Collector::dataTypeJson;
+    const collectorRabbitMQ = 'rabbitmq';
+    const collectorFile = 'file';
 
+    /**
+     * Record collector
+     * @var null|callable|string<rabbitmq/filelog>
+     */
+    public static $collector = null;
+    /**
+     * Record collector
+     * @var string
+     */
+    public static $defaultCollector = Collector::collectorFile;
+    /**
+     * Log format: 'json' or 'serialize'
+     * @var string
+     */
+    public static $collectDataType = Collector::dataTypeJson;
+
+    /**
+     * Compress log?
+     * @var int
+     */
     public static $compress = TraceEnv::OFF;
 }

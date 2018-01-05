@@ -8,17 +8,6 @@ namespace Tricolor\Tracker\Demo;
 
 class Logger
 {
-    public static function binary($path, $binary)
-    {
-        $dir = rtrim($path, '/') . '/';
-        $file = $dir . 'b'. date('Ymd') . '.log';
-        if (!is_dir($dir)) {
-            mkdir($dir, 777, true);
-        }
-        $fh = fopen($file, 'wb');
-        $length = fwrite($fh, $binary);
-    }
-
     public static function write($path, $str)
     {
         $dir = rtrim($path, '/') . '/';

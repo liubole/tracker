@@ -13,7 +13,7 @@ use Tricolor\Tracker\Core\Context;
 
 class RabbitMQHeaders implements Base
 {
-    private $prefix = 'Trace-';
+    private $prefix = 'Tr-';
     private $msgObj;
 
     /**

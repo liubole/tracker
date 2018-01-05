@@ -12,7 +12,7 @@ class Coding
     public static function encode($var)
     {
         try {
-            switch (Collector::$reportDataType) {
+            switch (Collector::$collectDataType) {
                 case Collector::dataTypeJson:
                     return @json_encode($var);
                 case Collector::dataTypeSerialize:
@@ -28,7 +28,7 @@ class Coding
     public static function decode($str)
     {
         try {
-            switch (Collector::$reportDataType) {
+            switch (Collector::$collectDataType) {
                 case Collector::dataTypeJson:
                     return @json_decode($str, 1);
                 case Collector::dataTypeSerialize:

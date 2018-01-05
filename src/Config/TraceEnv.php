@@ -14,15 +14,15 @@ class TraceEnv
     /**
      * @var null|integer
      */
-    public static $TraceForce = null;
+    public static $TraceSwitch = null;
 
     /**
      * @var null|integer
      */
-    public static $RecordForce = null;
+    public static $RecordSwitch = null;
 
     /**
      * @var null|integer
      */
-    public static $ReportForce = null;
+    public static $CollectSwitch = null;
 }

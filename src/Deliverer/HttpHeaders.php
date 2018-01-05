@@ -11,7 +11,7 @@ use Tricolor\Tracker\Core\Context;
 
 class HttpHeaders implements Base
 {
-    private $prefix = 'Trace-';// [A-Z][\w\-\d]+
+    private $prefix = 'Tr-';
     private $headers;
 
     public function __construct(&$headers = null)

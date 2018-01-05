@@ -10,6 +10,7 @@ use \Tricolor\Tracker\Config\Collector;
 use \Tricolor\Tracker\Config\TraceEnv;
 use \Tricolor\Tracker\Config\Collector\RabbitMQ;
 
-Collector::$compress = TraceEnv::ON;
-Collector::$reportDataType = Collector::dataTypeSerialize;
+Collector\FileLog::$root = __DIR__ . '/logs';
+Collector::$compress = TraceEnv::OFF;
+Collector::$collectDataType = Collector::dataTypeJson;
 RabbitMQ::set($rabbiqmqconfig);

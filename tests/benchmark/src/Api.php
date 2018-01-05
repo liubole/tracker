@@ -13,8 +13,9 @@ class Api
 {
     public function __construct()
     {
-        Collector::$reporter = array('\Tricolor\RabbitMQ\Publisher', 'pubLog');
-        Collector::$reportParams = array('log.trace', '{param}', 8);
+        Collector::$collector = function ($message) {
+            call_user_func(array('\Tricolor\RabbitMQ\Publisher', 'pubLog'), 'log.trace', $message, 8);
+        };
 
         Trace::buildFrom(new HttpHeaders());
 

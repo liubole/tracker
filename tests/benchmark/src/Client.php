@@ -20,7 +20,7 @@ class Client
             new Simple($_SERVER['HTTP_HOST'], '/https?:\/\/www\.ci123\.com/', false)
         );
 
-        Collector::$reporter = function ($info) {
+        Collector::$collector = function ($info) {
             $call = array('\Tricolor\RabbitMQ\Publisher', 'pubLog');
             if (is_callable($call)) {
                 call_user_func_array($call, array('log.trace', $info, 8));

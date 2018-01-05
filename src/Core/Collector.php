@@ -5,50 +5,88 @@
  * Time: 16:25
  */
 namespace Tricolor\Tracker\Core;
+use Tricolor\Tracker\Collector\FileLog;
+use Tricolor\Tracker\Collector\RabbitMQ;
 use Tricolor\Tracker\Common\Coding;
 use \Tricolor\Tracker\Config\Collector as CollectorConfig;
 use Tricolor\Tracker\Config\TraceEnv;
 
 class Collector
 {
-    public static function report($message)
+    /**
+     * Collect data
+     * @param $message
+     * @return bool|mixed
+     */
+    public static function collect($message)
+    {
+        if (isset(CollectorConfig::$collector)) {
+            return self::customized(self::logFormat($message), CollectorConfig::$collector);
+        }
+        switch (CollectorConfig::$defaultCollector) {
+            case CollectorConfig::collectorRabbitMQ:
+                return self::rabbitMq(self::logFormat($message));
+            case CollectorConfig::collectorFile:
+                return self::fileLog(self::logFormat($message));
+        }
+        return false;
+    }
+
+    /**
+     * Collect data by file log
+     * @param $message
+     * @return bool
+     */
+    private static function fileLog(&$message)
+    {
+        try {
+            FileLog::write($message);
+        } catch (\Exception $e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Collect data by rabbitmq
+     * @param $message
+     * @return bool
+     */
+    private static function rabbitMq(&$message)
+    {
+        try {
+            RabbitMQ::pub($message);
+        } catch (\Exception $e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Perform a custom collection method
+     * @param $message string
+     * @param $collector callable
+     * @return bool|mixed
+     */
+    private static function customized(&$message, $collector)
+    {
+        if (is_callable($collector)) {
+            return call_user_func($collector, $message);
+        }
+        return false;
+    }
+
+    /**
+     * Encode and compress message
+     * @param $message
+     * @return null|string
+     */
+    private static function logFormat(&$message)
     {
         $message = Coding::encode($message);
         if (CollectorConfig::$compress == TraceEnv::ON) {
             $message = gzdeflate($message);
         }
-        if (isset(CollectorConfig::$reporter)) {
-            return self::traceReport($message, CollectorConfig::$reporter, CollectorConfig::$reportParams);
-        }
-        return self::traceReport($message, array('Tricolor\Tracker\Collector\RabbitMQ', 'pub'), array());
-    }
-
-    /**
-     * @param $message string
-     * @param $reporter callable
-     * @param $reportParams
-     * @return bool|mixed
-     */
-    private static function traceReport(&$message, $reporter, $reportParams)
-    {
-        if (!is_callable($reporter)) {
-            return false;
-        }
-        $r_params = array();
-        if ($reportParams) {
-            $r_params = is_array($reportParams) ? $reportParams : array($reportParams);
-        }
-        // param type1: {reporterParams}
-        foreach ($r_params as &$p) {
-            if (is_string($p) && preg_match('/{[\w_\d]+}/', $p)) {
-                $p = $message;
-                return call_user_func_array($reporter, $r_params);
-            }
-        }
-        // param type: append
-        return call_user_func_array(
-            $reporter,
-            array_merge($r_params, array($message))
-        );
+        return $message;
     }
 }
