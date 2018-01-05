@@ -37,8 +37,8 @@ class Simple implements Base
     {
         if ($pattern) {
             $this->deny[] = array(
-                'value' => $value,
-                'pattern' => $pattern,
+                'value' => (string)$value,
+                'pattern' => (string)$pattern,
                 'is_regex' => (bool)$is_regex,
             );
         }
@@ -49,8 +49,8 @@ class Simple implements Base
     {
         if ($pattern) {
             $this->allow[] = array(
-                'value' => $value,
-                'pattern' => $pattern,
+                'value' => (string)$value,
+                'pattern' => (string)$pattern,
                 'is_regex' => (bool)$is_regex,
             );
         }

@@ -19,5 +19,5 @@ class Collector
     // json or serialize
     public static $reportDataType = Collector::dataTypeJson;
 
-    public static $compress = TraceEnv::ON;
+    public static $compress = TraceEnv::OFF;
 }

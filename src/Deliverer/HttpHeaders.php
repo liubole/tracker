@@ -5,6 +5,7 @@
  * Time: 9:32
  */
 namespace Tricolor\Tracker\Deliverer;
+use Tricolor\Tracker\Common\Server;
 use Tricolor\Tracker\Common\StrUtils;
 use Tricolor\Tracker\Core\Context;
 
@@ -23,7 +24,7 @@ class HttpHeaders implements Base
      */
     public function unpack()
     {
-        $headers = $this->getHeaders();
+        $headers = Server::getHeaders();
         $trace = array();
         foreach ($headers as $key => $val) {
             if (StrUtils::startsWith($key, $this->prefix)) {
@@ -49,17 +50,4 @@ class HttpHeaders implements Base
         return true;
     }
 
-    private function getHeaders()
-    {
-        if (function_exists('getallheaders')) {
-            return getallheaders();
-        }
-        $headers = array();
-        foreach ($_SERVER as $name => $value) {
-            if (substr($name, 0, 5) == 'HTTP_') {
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-            }
-        }
-        return $headers;
-    }
 }

@@ -13,8 +13,6 @@ class Api
 {
     public function __construct()
     {
-        // 在 autoload之后、业务调用之前 加入
-        // 也可以把配置写在其他class里
         Collector::$reporter = array('\Tricolor\RabbitMQ\Publisher', 'pubLog');
         Collector::$reportParams = array('log.trace', '{param}', 8);
 
@@ -29,7 +27,6 @@ class Api
 
     public function output($output)
     {
-        // 在输出、api返回的地方调用
         Trace::instance()
             ->record('output', $output)
             ->tag('ApiReturn')

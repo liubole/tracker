@@ -45,7 +45,6 @@ class StrUtils
     }
 
 //    /**
-//     * 提取点 & 分组 & 组内排序
 //     * @param $contexts
 //     * @param $startAt
 //     * @param $traceId
@@ -60,7 +59,6 @@ class StrUtils
 //            $startAt = isset($startAt) ? min($startAt, $context['At']) : $context['At'];
 //            isset($traceId) OR ($traceId = $context['TraceId']);
 //        }
-//        // 返回点集合 & 关系集合
 //        foreach ($groups as $gid => $group) {
 //            if (($count = count($group)) > 1) {
 //                $i = 0;

@@ -15,15 +15,11 @@ class Client
 {
     public function __construct()
     {
-        // 在 autoload之后、实际业务开始前 加入
-
-        // 记录过滤
         Trace::recordFilter(
             new Random(100),
             new Simple($_SERVER['HTTP_HOST'], '/https?:\/\/www\.ci123\.com/', false)
         );
 
-        // 数据上传
         Collector::$reporter = function ($info) {
             $call = array('\Tricolor\RabbitMQ\Publisher', 'pubLog');
             if (is_callable($call)) {
@@ -31,7 +27,6 @@ class Client
             }
         };
 
-        // 初始化
         Trace::init();
 
         Trace::instance()
@@ -41,7 +36,6 @@ class Client
 
     public function output($output)
     {
-        // 在输出、api返回的地方调用
         Trace::instance()
             ->tag('Return')
             ->record('output', $output)

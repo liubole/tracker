@@ -67,4 +67,23 @@ class Server
         isset($server) OR ($server = $_SERVER);
         return isset($server['QUERY_STRING']) ? $server['QUERY_STRING'] : '';
     }
+
+    public static function getHeaders()
+    {
+        if (function_exists('getallheaders')) {
+            return getallheaders();
+        }
+        $headers = array();
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
+        }
+        return $headers;
+    }
+
+    public static function keyFormat($key)
+    {
+        return str_replace(' ', '-', $key);
+    }
 }

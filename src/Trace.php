@@ -5,6 +5,7 @@
  * Time: 20:41
  */
 namespace Tricolor\Tracker;
+use Tricolor\Tracker\Common\Server;
 use Tricolor\Tracker\Config\TraceEnv;
 use Tricolor\Tracker\Core\Context;
 use Tricolor\Tracker\Common\StrUtils;
@@ -15,26 +16,37 @@ use Tricolor\Tracker\Core\Collector;
 class Trace
 {
     /**
+     * Records
      * @var array
      */
     private $records;
 
     /**
-     * @var array
-     */
-    private $record_results;
-
-    /**
+     * Records (ignore record filter)
      * @var array
      */
     private $force_records;
 
     /**
+     * Record filters array
      * @var array \Tricolor\Tracker\Filter\Base
      */
     private static $record_filters;
 
+    /**
+     * Record results
+     * @var array
+     */
+    private $record_results;
+
+    /**
+     * Context key: TraceId
+     */
     const TraceId = 'TraceId';
+
+    /**
+     * Context key: RpcId
+     */
     const RpcId = 'RpcId';
 
     public function __construct()
@@ -103,6 +115,10 @@ class Trace
 
     /**
      * Transparent transmission
+     * Attention/Suggestion:
+     *  1. no whitespace is allowed in key, whitespace in key will be converted to '-';
+     *  2. both key and value can not be too long, no longer than 255byte will be better;
+     *  3. it's recommended to use big-camel-case/upper-camel-case to delimit words in key;
      * @param $key string|array
      * @param $val string|callable
      * @return array
@@ -113,6 +129,7 @@ class Trace
         $sets = array();
         $transports = is_array($key) ? $key : array($key => $val);
         foreach ($transports as $key => $val) {
+            $key = Server::keyFormat(strval($key));
             if (!in_array($key, array(self::TraceId, self::RpcId))) {
                 $sets[(string)$key] = self::getTransVal($val);
             }
@@ -164,128 +181,12 @@ class Trace
     }
 
     /**
-     * Record something what you want.
-     * @param $key string
-     * @param $val string|callable
-     * @param $switch null|boolean|callable($context, $records)
-     * @return $this
-     */
-    public function record($key, $val, $switch = null)
-    {
-        if (!self::isRecordOn()) return $this;
-        $this->records[] = array(
-            'key' => $key,
-            'val' => $val,
-            'switch' => $switch
-        );
-        return $this;
-    }
-
-    /**
-     * Force to record, ignoring recordFilter
-     * @param $key string
-     * @param $val string|callable
-     * @param $switch null|boolean|callable($context, $records)
-     * @return $this
-     */
-    public function forceRecord($key, $val, $switch = null)
-    {
-        if (!self::isRecordOn()) return $this;
-        $this->force_records[] = array(
-            'key' => $key,
-            'val' => $val,
-            'switch' => $switch
-        );
-        return $this;
-    }
-
-    /**
-     * Attach a tag to data
-     * @param $tag string
-     * @return $this
-     */
-    public function tag($tag)
-    {
-        if (!self::isRecordOn()) return $this;
-        if ($tag = (string)$tag) {
-            $this->record_results['Tag'] = $tag;
-        }
-        return $this;
-    }
-
-    /**
-     * Record data (by collector)
-     * @return bool
-     */
-    public function run()
-    {
-        $record_res = $this->doRecord();
-        $this->record_results['At'] = Time::get();
-        self::isReportOn() AND Collector::report($this->getToReport());
-        Context::set(self::RpcId, StrUtils::rpcStep(Context::get(self::RpcId)));
-        return $record_res;
-    }
-
-    /**
      * New instance of Trace
      * @return Trace
      */
     public static function instance()
     {
         return new Trace();
-    }
-
-    /**
-     * Get Context
-     * @return array
-     */
-    private function getToReport()
-    {
-        return array_merge($this->record_results, Context::toArray());
-    }
-
-    private function doRecord()
-    {
-        if (!self::isRecordOn()) {
-            return false;
-        }
-        // Force to record
-        foreach ($this->force_records as $record) {
-            if (!($key = strval($record['key']))) continue;
-            if ($this->isSwitchOn($record['switch'])) {
-                $this->record_results[$key] = $this->getRecordVal($record['val']);
-            }
-        }
-        // Record filter
-        $record_allow = true;
-        if (is_array(self::$record_filters)) {
-            foreach (self::$record_filters as $filter) {
-                if ($this->filterDeny($filter)) {
-                    $record_allow = false;
-                    break;
-                }
-            }
-        }
-        // Record
-        if ($record_allow) {
-            foreach ($this->records as $record) {
-                if (!($key = strval($record['key']))) continue;
-                if ($this->isSwitchOn($record['switch'])) {
-                    $this->record_results[$key] = $this->getRecordVal($record['val']);
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     *
-     */
-    private function defaultRecord()
-    {
-//        $this->record('Ip', Common\Server::getIp(), function ($context) {
-//            return isset($context['CloseIp']) && ($context['CloseIp'] == TraceEnv::OFF);
-//        });
     }
 
     /**
@@ -359,15 +260,127 @@ class Trace
     }
 
     /**
-     * @param $val
-     * @return mixed
+     * Record something what you want.
+     * @param $key string
+     * @param $val string|callable
+     * @param $switch null|boolean|callable($context, $records)
+     * @return $this
      */
-    private static function getTransVal($val)
+    public function record($key, $val, $switch = null)
     {
-        return is_callable($val) ? call_user_func($val, Context::toArray()) : $val;
+        if (!self::isRecordOn()) return $this;
+        $this->records[] = array(
+            'key' => $key,
+            'val' => $val,
+            'switch' => $switch
+        );
+        return $this;
     }
 
     /**
+     * Force to record, ignoring recordFilter
+     * @param $key string
+     * @param $val string|callable
+     * @param $switch null|boolean|callable($context, $records)
+     * @return $this
+     */
+    public function forceRecord($key, $val, $switch = null)
+    {
+        if (!self::isRecordOn()) return $this;
+        $this->force_records[] = array(
+            'key' => $key,
+            'val' => $val,
+            'switch' => $switch
+        );
+        return $this;
+    }
+
+    /**
+     * Attach a tag to data
+     * @param $tag string
+     * @return $this
+     */
+    public function tag($tag)
+    {
+        if (!self::isRecordOn()) return $this;
+        if ($tag = (string)$tag) {
+            $this->record_results['Tag'] = $tag;
+        }
+        return $this;
+    }
+
+    /**
+     * Record data, and report result
+     * @return bool
+     */
+    public function run()
+    {
+        $record_res = $this->doRecord();
+        $this->record_results['At'] = Time::get();
+        self::isReportOn() AND Collector::report($this->getToReport());
+        Context::set(self::RpcId, StrUtils::rpcStep(Context::get(self::RpcId)));
+        return $record_res;
+    }
+
+    /**
+     * Merge Context and record result
+     * @return array
+     */
+    private function getToReport()
+    {
+        return array_merge(Context::toArray(), array_diff($this->record_results, Context::toArray()));
+    }
+
+    /**
+     * Recording method
+     * @return bool
+     */
+    private function doRecord()
+    {
+        if (!self::isRecordOn()) {
+            return false;
+        }
+        // Force to record
+        foreach ($this->force_records as $record) {
+            if (!($key = strval($record['key']))) continue;
+            if ($this->isSwitchOn($record['switch'])) {
+                $this->record_results[$key] = $this->getRecordVal($record['val']);
+            }
+        }
+        // Record filter
+        $record_allow = true;
+        if (is_array(self::$record_filters)) {
+            foreach (self::$record_filters as $filter) {
+                if ($this->filterDeny($filter)) {
+                    $record_allow = false;
+                    break;
+                }
+            }
+        }
+        // Record
+        if ($record_allow) {
+            foreach ($this->records as $record) {
+                if (!($key = strval($record['key']))) continue;
+                if ($this->isSwitchOn($record['switch'])) {
+                    $this->record_results[$key] = $this->getRecordVal($record['val']);
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Record built-in
+     */
+    private function defaultRecord()
+    {
+//        $this->record('Ip', Common\Server::getIp(), function ($context) {
+//            return isset($context['CloseIp']) && ($context['CloseIp'] == TraceEnv::OFF);
+//        });
+    }
+
+    /**
+     * Record or not, according to the result
      * @param $filter callable|Filter\Base
      * @return bool|null
      */
@@ -384,6 +397,7 @@ class Trace
     }
 
     /**
+     * Executes and returns result
      * @param $switch
      * @return bool
      */
@@ -397,6 +411,17 @@ class Trace
     }
 
     /**
+     * Executes and returns result
+     * @param $val
+     * @return mixed
+     */
+    private static function getTransVal($val)
+    {
+        return is_callable($val) ? call_user_func($val, Context::toArray()) : $val;
+    }
+
+    /**
+     * Executes and returns result
      * @param $val
      * @return mixed
      */

@@ -10,7 +10,6 @@ class Context
 {
     public $TraceId;
     public $RpcId;
-    public $At;
 
     /**
      * @var Context
@@ -39,7 +38,7 @@ class Context
 
     public function getKey($key)
     {
-        return $this->$key;
+        return isset($this->$key) ? $this->$key : null;
     }
 
     public function removeKey($key)

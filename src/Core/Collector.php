@@ -23,12 +23,17 @@ class Collector
         return self::traceReport($message, array('Tricolor\Tracker\Collector\RabbitMQ', 'pub'), array());
     }
 
+    /**
+     * @param $message string
+     * @param $reporter callable
+     * @param $reportParams
+     * @return bool|mixed
+     */
     private static function traceReport(&$message, $reporter, $reportParams)
     {
         if (!is_callable($reporter)) {
             return false;
         }
-        $message = Coding::encode($message);
         $r_params = array();
         if ($reportParams) {
             $r_params = is_array($reportParams) ? $reportParams : array($reportParams);
