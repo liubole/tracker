@@ -6,7 +6,7 @@
  */
 namespace Tricolor\Tracker\Demo;
 
-use Tricolor\Tracker\Trace;
+use Tricolor\Tracker\Tracer;
 
 class Controller
 {
@@ -42,9 +42,9 @@ class Controller
     public function output($output, $noencode = false)
     {
         $id = defined('CLIENTID') ? CLIENTID : '';
-        Trace::instance()
+        Tracer::instance()
             ->tag('Return')
-            ->record($id . 'Output', $output)
+            ->log($id . 'Output', $output)
             ->run();
         echo json_encode($output);
         die();

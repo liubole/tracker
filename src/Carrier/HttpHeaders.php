@@ -4,7 +4,7 @@
  * Date: 2017/12/20
  * Time: 9:32
  */
-namespace Tricolor\Tracker\Deliverer;
+namespace Tricolor\Tracker\Carrier;
 use Tricolor\Tracker\Common\Server;
 use Tricolor\Tracker\Common\StrUtils;
 use Tricolor\Tracker\Core\Context;

@@ -13,9 +13,9 @@ class Coding
     {
         try {
             switch (Collector::$collectDataType) {
-                case Collector::dataTypeJson:
+                case Collector::json:
                     return @json_encode($var);
-                case Collector::dataTypeSerialize:
+                case Collector::serialize:
                     return @serialize($var);
                 default:
                     break;
@@ -29,9 +29,9 @@ class Coding
     {
         try {
             switch (Collector::$collectDataType) {
-                case Collector::dataTypeJson:
+                case Collector::json:
                     return @json_decode($str, 1);
-                case Collector::dataTypeSerialize:
+                case Collector::serialize:
                     return @unserialize($str);
                 default:
                     break;

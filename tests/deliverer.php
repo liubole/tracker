@@ -5,7 +5,7 @@
  * DateTime: 2017/12/18 22:37
  */
 include_once __DIR__ . "/../vendor/autoload.php";
-use Tricolor\Tracker\Deliverer\HttpPost;
+use Tricolor\Tracker\Carrier\HttpPost;
 
 $params = array(
     'p1' => 123,

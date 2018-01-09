@@ -4,7 +4,7 @@
  * Date: 2017/12/20
  * Time: 9:33
  */
-namespace Tricolor\Tracker\Deliverer;
+namespace Tricolor\Tracker\Carrier;
 use PhpAmqpLib\Wire\AMQPTable;
 use Tricolor\Tracker\Common\Logger;
 use Tricolor\Tracker\Common\StrUtils;

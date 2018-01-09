@@ -5,8 +5,8 @@
  * Time: 21:44
  */
 namespace Tricolor\Tracker\Test\Libs;
-use Tricolor\Tracker\Deliverer\RabbitMQHeaders;
-use \Tricolor\Tracker\Trace;
+use Tricolor\Tracker\Carrier\RabbitMQHeaders;
+use Tricolor\Tracker\Tracer;
 
 class RabbitMQ
 {
@@ -15,10 +15,10 @@ class RabbitMQ
         //
         $msg = new \PhpAmqpLib\Message\AMQPMessage($message);
 
-        Trace::transBy(new RabbitMQHeaders($msg));
+        Tracer::inject(new RabbitMQHeaders($msg));
 
-        Trace::instance()
-            ->record('key', $message, function ($context) {
+        Tracer::instance()
+            ->log('key', $message, function ($context) {
                 return isset($context['ClosePubMsg']) && ($context['ClosePubMsg'] == 1);
             })
             ->tag('PubMsg')
@@ -29,11 +29,11 @@ class RabbitMQ
     public static function subscribe($callback)
     {
         $realCallback = function ($msgObj) use ($callback) {
-            Trace::buildFrom(new MQDeliverer($msgObj));
-//            Trace::untrace('From');
-//            Trace::untraceAll('StoreId', 'From');
-            Trace::instance()
-                ->record('msg', $msgObj->body, function ($context) {
+            Tracer::extract(new RabbitMQHeaders($msgObj));
+//            Tracer::untrace('From');
+//            Tracer::untraceAll('StoreId', 'From');
+            Tracer::instance()
+                ->log('msg', $msgObj->body, function ($context) {
                     return isset($context['CloseSubMsg']) && ($context['CloseSubMsg'] == 1);
                 })
                 ->tag('SubMsg')

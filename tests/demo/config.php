@@ -12,5 +12,5 @@ use \Tricolor\Tracker\Config\Collector\RabbitMQ;
 
 Collector\FileLog::$root = __DIR__ . '/logs';
 Collector::$compress = TraceEnv::OFF;
-Collector::$collectDataType = Collector::dataTypeJson;
+Collector::$collectDataType = Collector::json;
 RabbitMQ::set($rabbiqmqconfig);

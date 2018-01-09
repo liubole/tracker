@@ -8,8 +8,8 @@ namespace Tricolor\Tracker\Config;
 
 class Collector
 {
-    const dataTypeJson = 'json';
-    const dataTypeSerialize = 'serialize';
+    const json = 'json';
+    const serialize = 'serialize';
 
     const collectorRabbitMQ = 'rabbitmq';
     const collectorFile = 'file';
@@ -28,7 +28,7 @@ class Collector
      * Log format: 'json' or 'serialize'
      * @var string
      */
-    public static $collectDataType = Collector::dataTypeJson;
+    public static $collectDataType = Collector::json;
 
     /**
      * Compress log?

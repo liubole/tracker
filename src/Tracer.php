@@ -13,7 +13,7 @@ use Tricolor\Tracker\Common\Time;
 use Tricolor\Tracker\Common\UID;
 use Tricolor\Tracker\Core\Collector;
 
-class Trace
+class Tracer
 {
     /**
      * Records
@@ -22,14 +22,14 @@ class Trace
     private $records;
 
     /**
-     * Records (ignore record filter)
+     * Records (ignore log filter)
      * @var array
      */
     private $force_records;
 
     /**
      * Record filters array
-     * @var array \Tricolor\Tracker\Filter\Base
+     * @var array Tricolor\Tracker\Filter\Base
      */
     private static $record_filters;
 
@@ -52,7 +52,7 @@ class Trace
      * Names of Switch
      */
     const TraceSwitch = 'TraceSwitch';
-    const RecordSwitch = 'RecordSwitch';
+    const LogSwitch = 'LogSwitch';
     const CollectSwitch = 'CollectSwitch';
 
     public function __construct()
@@ -60,7 +60,7 @@ class Trace
         $this->records = array();
         $this->force_records = array();
         $this->record_results = array();
-        $this->defaultRecord();
+        $this->builtInLog();
     }
 
     /**
@@ -81,33 +81,33 @@ class Trace
 
     /**
      * Set the method to pass the context
-     * @param $deliverer \Tricolor\Tracker\Deliverer\Base
+     * @param $carrier \Tricolor\Tracker\Carrier\Base
      * @return boolean
      */
-    public static function transBy($deliverer)
+    public static function inject($carrier)
     {
         if (!self::isTraceOn()) return false;
-        return $deliverer
-            ? $deliverer->pack()
+        return $carrier
+            ? $carrier->pack()
             : false;
     }
 
     /**
      * Receive the context by point out the way we used to deliver the context
-     * @param $from_deliverer \Tricolor\Tracker\Deliverer\Base
+     * @param $carrier \Tricolor\Tracker\Carrier\Base
      * @param boolean $auto_init
      * @return array
      */
-    public static function buildFrom($from_deliverer, $auto_init = false)
+    public static function extract($carrier, $auto_init = false)
     {
         if (isset(TraceEnv::$TraceSwitch) && self::forceIsValid(TraceEnv::$TraceSwitch)) {
             if (TraceEnv::$TraceSwitch == TraceEnv::OFF) {
                 return array();
             }
         }
-        if (!$from_deliverer->unpack()) {
+        if (!$carrier->unpack()) {
             if ($auto_init) {
-                return Trace::init();
+                return Tracer::init();
             }
         }
         Context::set(self::RpcId, StrUtils::rpcNext(Context::get(self::RpcId)));
@@ -129,7 +129,7 @@ class Trace
      * @param $val string|callable
      * @return array
      */
-    public static function transport($key, $val = null)
+    public static function setContext($key, $val = null)
     {
         if (!self::isTraceOn()) return array();
         $sets = array();
@@ -142,6 +142,17 @@ class Trace
         }
         empty($sets) OR Context::set($sets);
         return Context::toArray();
+    }
+
+    /**
+     * Get Values from Context
+     * @param $key
+     * @return null|string
+     */
+    public static function getContext($key)
+    {
+        $context = Context::toArray();
+        return isset($context[$key]) ? $context[$key] : null;
     }
 
     /**
@@ -175,7 +186,7 @@ class Trace
      * $result = filter1->() & filter2 & filter3...
      * @param $_filters callable|Filter\Base
      */
-    public static function recordFilter($_filters)
+    public static function logFilter($_filters)
     {
         if (!self::isTraceOn()) return;
         is_array(self::$record_filters) OR (self::$record_filters = array());
@@ -187,12 +198,12 @@ class Trace
     }
 
     /**
-     * New instance of Trace
-     * @return Trace
+     * New instance of Tracer
+     * @return Tracer
      */
     public static function instance()
     {
-        return new Trace();
+        return new Tracer();
     }
 
     /**
@@ -207,9 +218,9 @@ class Trace
      * 4. Except for the case before.   => TRUE
      * 5. How to open/close tracking by force:
      *      5.1. Open:
-     *          transport('TraceSwitch', TraceEnv::ON); or TraceEnv::$TraceSwitch = TraceEnv::ON;
+     *          set('TraceSwitch', TraceEnv::ON); or TraceEnv::$TraceSwitch = TraceEnv::ON;
      *      5.2. Close:
-     *          transport('TraceSwitch', TraceEnv::OFF); or TraceEnv::$TraceSwitch = TraceEnv::OFF;
+     *          set('TraceSwitch', TraceEnv::OFF); or TraceEnv::$TraceSwitch = TraceEnv::OFF;
      * 6. TraceEnv::$$TraceSwitch's priority is higher than Context::$TraceSwitch.
      * 7. Switch is on by default.
      * @return bool
@@ -232,22 +243,22 @@ class Trace
      * Is Record on?
      * 1. How to open/close tracking by force:
      *      1.1. Open:
-     *          transport('RecordSwitch', TraceEnv::ON); or TraceEnv::$RecordSwitch = TraceEnv::ON;
+     *          set('LogSwitch', TraceEnv::ON); or TraceEnv::$LogSwitch = TraceEnv::ON;
      *      1.2. Close:
-     *          transport('RecordSwitch', TraceEnv::OFF); or TraceEnv::$RecordSwitch = TraceEnv::OFF;
-     * 2. TraceEnv::$RecordSwitch's priority is higher than Context::$RecordSwitch.
+     *          set('LogSwitch', TraceEnv::OFF); or TraceEnv::$LogSwitch = TraceEnv::OFF;
+     * 2. TraceEnv::$LogSwitch's priority is higher than Context::$LogSwitch.
      * 3. Switch is on by default.
      * @return bool
      */
-    private static function isRecordOn()
+    private static function isLogOn()
     {
         if (!self::isTraceOn()) {
             return false;
         }
-        if (isset(TraceEnv::$RecordSwitch) && self::forceIsValid(TraceEnv::$RecordSwitch)) {
-            return TraceEnv::$RecordSwitch == TraceEnv::ON;
+        if (isset(TraceEnv::$LogSwitch) && self::forceIsValid(TraceEnv::$LogSwitch)) {
+            return TraceEnv::$LogSwitch == TraceEnv::ON;
         }
-        if (!is_null($force = Context::get(self::RecordSwitch)) && self::forceIsValid($force)) {
+        if (!is_null($force = Context::get(self::LogSwitch)) && self::forceIsValid($force)) {
             return $force == TraceEnv::ON;
         }
         return true;
@@ -257,9 +268,9 @@ class Trace
      * Is Report on?
      * 1. How to open/close tracking by force:
      *      1.1. Open:
-     *          transport('CollectSwitch', TraceEnv::ON); or TraceEnv::$CollectSwitch = TraceEnv::ON;
+     *          set('CollectSwitch', TraceEnv::ON); or TraceEnv::$CollectSwitch = TraceEnv::ON;
      *      1.2. Close:
-     *          transport('CollectSwitch', TraceEnv::OFF); or TraceEnv::$CollectSwitch = TraceEnv::OFF;
+     *          set('CollectSwitch', TraceEnv::OFF); or TraceEnv::$CollectSwitch = TraceEnv::OFF;
      * 2. TraceEnv::$CollectSwitch's priority is higher than Context::$CollectSwitch.
      * 3. Switch is on by default.
      * @return bool
@@ -295,9 +306,9 @@ class Trace
      * @param $switch null|boolean|callable($context, $records)
      * @return $this
      */
-    public function record($key, $val, $switch = null)
+    public function log($key, $val, $switch = null)
     {
-        if (!self::isRecordOn()) return $this;
+        if (!self::isLogOn()) return $this;
         $this->records[] = array(
             'key' => $key,
             'val' => $val,
@@ -307,7 +318,7 @@ class Trace
     }
 
     /**
-     * Force to record, ignoring recordFilter
+     * Force to log, ignoring logFilter
      * @param $key string
      * @param $val string|callable
      * @param $switch null|boolean|callable($context, $records)
@@ -315,7 +326,7 @@ class Trace
      */
     public function forceRecord($key, $val, $switch = null)
     {
-        if (!self::isRecordOn()) return $this;
+        if (!self::isLogOn()) return $this;
         $this->force_records[] = array(
             'key' => $key,
             'val' => $val,
@@ -331,7 +342,7 @@ class Trace
      */
     public function tag($tag)
     {
-        if (!self::isRecordOn()) return $this;
+        if (!self::isLogOn()) return $this;
         if ($tag = (string)$tag) {
             $this->record_results['Tag'] = $tag;
         }
@@ -352,7 +363,7 @@ class Trace
     }
 
     /**
-     * Merge Context and record result
+     * Merge Context and log result
      * @return array
      */
     private function getToReport()
@@ -366,7 +377,7 @@ class Trace
      */
     private function doRecord()
     {
-        if (!self::isRecordOn()) {
+        if (!self::isLogOn()) {
             return false;
         }
         // Force to record
@@ -401,9 +412,9 @@ class Trace
     /**
      * Record built-in
      */
-    private function defaultRecord()
+    private function builtInLog()
     {
-//        $this->record('Ip', Common\Server::getIp(), function ($context) {
+//        $this->log('Ip', Common\Server::getIp(), function ($context) {
 //            return isset($context['CloseIp']) && ($context['CloseIp'] == TraceEnv::OFF);
 //        });
     }
@@ -445,9 +456,7 @@ class Trace
      */
     private static function getTransVal($val)
     {
-        return is_callable($val)
-            ? (string)call_user_func($val, Context::toArray())
-            : (string)$val;
+        return (string)$val;
     }
 
     /**

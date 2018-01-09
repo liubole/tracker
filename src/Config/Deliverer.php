@@ -6,10 +6,8 @@
  */
 namespace Tricolor\Tracker\Config;
 
-class Deliverer
+class Carrier
 {
-    public static $deliverPostTraceKey = '__trace__';
-
-    public static $deliverMQTraceKey = '__trace__';
-    public static $deliverMQDataKey = '__data__';
+    public static $traceKey = '__trace__';
+    public static $dataKey = '__data__';
 }

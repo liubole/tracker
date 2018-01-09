@@ -7,7 +7,7 @@
 namespace Tricolor\Tracker\Test\Libs;
 use Tricolor\Tracker\Filter\Random;
 use Tricolor\Tracker\Filter\Simple;
-use \Tricolor\Tracker\Trace;
+use \Tricolor\Tracker\Tracer;
 use \Tricolor\Tracker\Config\Collector;
 use Tricolor\Tracker\Filter\Random as RandomFilter;
 
@@ -15,7 +15,7 @@ class Client
 {
     public function __construct()
     {
-        Trace::recordFilter(
+        Tracer::logFilter(
             new Random(100),
             new Simple($_SERVER['HTTP_HOST'], '/https?:\/\/www\.ci123\.com/', false)
         );
@@ -27,18 +27,18 @@ class Client
             }
         };
 
-        Trace::init();
+        Tracer::init();
 
-        Trace::instance()
+        Tracer::instance()
             ->tag('Init')
             ->run();
     }
 
     public function output($output)
     {
-        Trace::instance()
+        Tracer::instance()
             ->tag('Return')
-            ->record('output', $output)
+            ->log('output', $output)
             ->run();
         echo json_encode($output);
         die();

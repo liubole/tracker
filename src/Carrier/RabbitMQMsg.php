@@ -4,11 +4,11 @@
  * Date: 2017/11/4
  * Time: 22:00
  */
-namespace Tricolor\Tracker\Deliverer;
+namespace Tricolor\Tracker\Carrier;
 use Tricolor\Tracker\Common\Coding;
 use Tricolor\Tracker\Common\Logger;
 use Tricolor\Tracker\Config\Debug;
-use Tricolor\Tracker\Config\Deliverer;
+use Tricolor\Tracker\Config\Carrier;
 use Tricolor\Tracker\Core\Context;
 
 class RabbitMQMsg implements Base
@@ -38,11 +38,11 @@ class RabbitMQMsg implements Base
             if (!is_string($msg) || !($msgArr = Coding::decode($msg)) || !is_array($msgArr)) {
                 return false;
             }
-            if (!isset($msgArr[Deliverer::$deliverMQTraceKey]) || !isset($msgArr[Deliverer::$deliverMQDataKey])) {
+            if (!isset($msgArr[Carrier::$traceKey]) || !isset($msgArr[Carrier::$dataKey])) {
                 return false;
             }
-            Context::set($msgArr[Deliverer::$deliverMQTraceKey]);
-            $this->msgObj->body = $msgArr[Deliverer::$deliverMQDataKey];
+            Context::set($msgArr[Carrier::$traceKey]);
+            $this->msgObj->body = $msgArr[Carrier::$dataKey];
             return true;
         } catch (\Exception $e) {
             Logger::log(Debug::ERROR, __METHOD__ . ': exception :' . $e->getMessage());
@@ -54,8 +54,8 @@ class RabbitMQMsg implements Base
     {
         if ($this->message) {
             $this->message = Coding::encode(array(
-                Deliverer::$deliverMQTraceKey => Context::toArray(),
-                Deliverer::$deliverMQDataKey => $this->message,
+                Carrier::$traceKey => Context::toArray(),
+                Carrier::$dataKey => $this->message,
             ));
             Logger::log(Debug::WARNING, __METHOD__ . ': pack succeed!');
             return true;

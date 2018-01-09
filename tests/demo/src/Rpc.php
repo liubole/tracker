@@ -5,8 +5,8 @@
  * Time: 21:22
  */
 namespace Tricolor\Tracker\Demo;
-use Tricolor\Tracker\Deliverer\HttpHeaders;
-use Tricolor\Tracker\Trace;
+use Tricolor\Tracker\Carrier\HttpHeaders;
+use Tricolor\Tracker\Tracer;
 
 class Rpc
 {
@@ -17,15 +17,15 @@ class Rpc
     {
         $url = $this->url(trim($api, '/'));
         $headers = array();
-        Trace::transBy(new HttpHeaders($headers));
-        Trace::instance()
-            ->record('Api', $api)
-            ->record('Params', $params)
+        Tracer::inject(new HttpHeaders($headers));
+        Tracer::instance()
+            ->log('Api', $api)
+            ->log('Params', $params)
             ->tag($this->getIdentity() . 'CallApi')
             ->run();
         $response = $this->post($url, $params, $headers);
-        Trace::instance()
-            ->record('Resp', $response)
+        Tracer::instance()
+            ->log('Resp', $response)
             ->tag($this->getIdentity() . 'RecvApi')
             ->run();
         $output = json_decode($response, 1);

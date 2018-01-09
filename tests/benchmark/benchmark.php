@@ -26,11 +26,11 @@ $cycles = 1;
 for ($i = 0; $i<$cycles;$i++) {
     $bm = new \Tricolor\Tracker\Core\Benchmark();
     $bm->mark('trace_start');
-    \Tricolor\Tracker\Trace::init();
+    \Tricolor\Tracker\Tracer::init();
     // 50 calls ever time
     $times = 50;
     for ($j = 0; $j < $times; $j++) {
-        \Tricolor\Tracker\Trace::instance()->record('Stub', BenchmarkStub::$data);
+        \Tricolor\Tracker\Tracer::instance()->log('Stub', BenchmarkStub::$data);
     }
     $bm->mark('trace_end');
     $use = $bm->elapsed_time('trace_start', 'trace_end');

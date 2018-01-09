@@ -19,7 +19,7 @@ class TraceEnv
     /**
      * @var null|integer
      */
-    public static $RecordSwitch = null;
+    public static $LogSwitch = null;
 
     /**
      * @var null|integer

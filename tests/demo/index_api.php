@@ -8,9 +8,9 @@ include_once __DIR__ . "/vendor/autoload.php";
 include_once __DIR__ . "/../../vendor/autoload.php";
 include_once __DIR__ . "/config.php";
 
-use \Tricolor\Tracker\Trace;
+use \Tricolor\Tracker\Tracer;
 use \Tricolor\Tracker\Config\Collector;
-use \Tricolor\Tracker\Deliverer\HttpHeaders;
+use \Tricolor\Tracker\Carrier\HttpHeaders;
 
 define('CLIENTID', 'Api');
 
@@ -18,10 +18,10 @@ define('CLIENTID', 'Api');
 //    $call = array('\Tricolor\Tracker\Demo\Logger', 'write');
 //    call_user_func_array($call, array('./logs/', $info));
 //};
-Trace::buildFrom(new HttpHeaders());
-Trace::instance()
-    ->record('post', $_POST)
-    ->record('get', $_GET)
+Tracer::extract(new HttpHeaders());
+Tracer::instance()
+    ->log('post', $_POST)
+    ->log('get', $_GET)
     ->tag('ApiRecv')
     ->run();
 

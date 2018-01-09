@@ -5,8 +5,8 @@
  * Time: 21:49
  */
 namespace Tricolor\Tracker\Test\Libs;
-use Tricolor\Tracker\Deliverer\HttpHeaders;
-use Tricolor\Tracker\Trace;
+use Tricolor\Tracker\Carrier\HttpHeaders;
+use Tricolor\Tracker\Tracer;
 
 class Rpc
 {
@@ -15,18 +15,18 @@ class Rpc
         $headers = array();
 
         // ...
-        Trace::instance()
-            ->record('Url', $url)
-            ->record('Params', $params)
+        Tracer::instance()
+            ->log('Url', $url)
+            ->log('Params', $params)
             ->tag('CallApi')
             ->run();
 
-        Trace::transBy(new HttpHeaders($headers));
+        Tracer::inject(new HttpHeaders($headers));
 
         $output = $this->curl($url, $params);
 
-        Trace::instance()
-            ->record('Output', $output)
+        Tracer::instance()
+            ->log('Output', $output)
             ->tag('RecvApi')
             ->run();
     }

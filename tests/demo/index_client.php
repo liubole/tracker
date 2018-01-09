@@ -11,7 +11,7 @@ include_once __DIR__ . "/config.php";
 use Tricolor\Tracker\Common\Server;
 use Tricolor\Tracker\Filter\Random;
 use Tricolor\Tracker\Filter\Simple;
-use \Tricolor\Tracker\Trace;
+use \Tricolor\Tracker\Tracer;
 use \Tricolor\Tracker\Config\Collector;
 
 define('CLIENTID', 'Client');
@@ -20,20 +20,20 @@ define('CLIENTID', 'Client');
 //    call_user_func_array($call, array('./logs/', $info));
 //};
 $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
-Trace::init();
-Trace::transport('AtH', microtime());
-Trace::transport('InAt', microtime());
-Trace::transport('UsrIp', Server::getIp());
-Trace::transport($s = 'T-a', $s);
-Trace::transport($s = 'T_a', $s);
-Trace::transport($s = 'a-b', $s);
-Trace::transport($s = 'a_b', $s);
-Trace::transport($s = 'a b', $s);
-Trace::recordFilter(
+Tracer::init();
+Tracer::setContext('AtH', microtime());
+Tracer::setContext('InAt', microtime());
+Tracer::setContext('UsrIp', Server::getIp());
+Tracer::setContext($s = 'T-a', $s);
+Tracer::setContext($s = 'T_a', $s);
+Tracer::setContext($s = 'a-b', $s);
+Tracer::setContext($s = 'a_b', $s);
+Tracer::setContext($s = 'a b', $s);
+Tracer::logFilter(
     new Random(100),
-    (new Simple())->allow($host, '/https?:\/\/filter\.tracker\.tricolor\.com/')
+    (new Simple())->deny($host, '/https?:\/\/filter\.tracker\.tricolor\.com/')
 );
-Trace::instance()->tag('Init')->run();
+Tracer::instance()->tag('Init')->run();
 
 $microtime = isset($_POST['microtime']) ? $_POST['microtime'] : '';
 // client will do:
